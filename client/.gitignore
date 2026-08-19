@@ -1,0 +1,16 @@
+# Client Dependencies
+node_modules/
+
+# Production build
+dist/
+dist-ssr/
+build/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local cache & logs
+.cache/
+*.log

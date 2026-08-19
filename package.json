@@ -1,0 +1,26 @@
+{
+  "name": "createforge-ai",
+  "version": "2.0.0",
+  "description": "CreateForge AI — Modular AI Creative Workspace Platform (Full-Stack Web Application)",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "start:server": "cd server && npm start",
+    "build:client": "cd client && npm run build",
+    "test:server": "cd server && npm test",
+    "install:all": "npm --prefix server install && npm --prefix client install"
+  },
+  "keywords": [
+    "createforge-ai",
+    "fullstack",
+    "react",
+    "express",
+    "mongodb",
+    "jwt",
+    "gemini-api",
+    "grok-api"
+  ],
+  "author": "CreateForge AI Team",
+  "license": "MIT"
+}

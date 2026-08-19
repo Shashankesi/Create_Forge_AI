@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">
+  <defs>
+    <linearGradient id="forgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+    <linearGradient id="facetGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0.8" />
+    </linearGradient>
+  </defs>
+  <rect x="2.5" y="2.5" width="31" height="31" rx="9" fill="url(#forgeGrad)" />
+  <path d="M18 6.5C18 12.85 12.85 18 6.5 18C12.85 18 18 23.15 18 29.5C18 23.15 23.15 18 29.5 18C23.15 18 18 12.85 18 6.5Z" fill="url(#facetGrad)" />
+  <path d="M18 11.5L24.5 18L18 24.5L11.5 18L18 11.5Z" fill="rgba(255, 255, 255, 0.25)" />
+  <circle cx="18" cy="18" r="2.8" fill="#1e1b4b" />
+</svg>

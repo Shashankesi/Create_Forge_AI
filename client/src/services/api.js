@@ -1,0 +1,57 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 45000,
+});
+
+// Request interceptor: Attach JWT token if present in localStorage
+api.interceptors.request.use(
+  (config) => {
+    const token =
+      localStorage.getItem('createforge_token') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('pixora_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: Clean error formatting & handle session expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message =
+      error.response?.data?.error?.message ||
+      error.response?.data?.message ||
+      error.message ||
+      'An unexpected error occurred. Please try again.';
+
+    if (error.response?.status === 401) {
+      const pathname = window.location.pathname;
+      if (
+        !pathname.includes('/login') &&
+        !pathname.includes('/register') &&
+        pathname !== '/'
+      ) {
+        localStorage.removeItem('createforge_token');
+        localStorage.removeItem('createforge_user');
+        localStorage.removeItem('token');
+      }
+    }
+
+    return Promise.reject({
+      ...error,
+      customMessage: message,
+    });
+  }
+);
+
+export default api;

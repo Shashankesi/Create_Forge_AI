@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --px-primary: #4f46e5;
+    --px-primary-hover: #4338ca;
+    --px-primary-subtle: #eef2ff;
+    --px-primary-text: #4338ca;
+    
+    --px-background: #f8fafc;
+    --px-surface: #ffffff;
+    --px-surface-elevated: #ffffff;
+    --px-surface-hover: #f1f5f9;
+    --px-surface-subtle: #f8fafc;
+    
+    --px-border: #e2e8f0;
+    --px-border-subtle: #f1f5f9;
+    --px-border-hover: #cbd5e1;
+    
+    --px-text-primary: #0f172a;
+    --px-text-secondary: #475569;
+    --px-text-muted: #94a3b8;
+    
+    --px-success: #10b981;
+    --px-warning: #f59e0b;
+    --px-error: #ef4444;
+    
+    --px-radius-sm: 6px;
+    --px-radius-md: 10px;
+    --px-radius-lg: 14px;
+    --px-radius-xl: 18px;
+    
+    --px-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --px-shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.06);
+    --px-shadow-lg: 0 12px 28px -4px rgb(0 0 0 / 0.08);
+
+    /* Legacy mapping for smooth fallback */
+    --bg-app: var(--px-background);
+    --bg-surface: var(--px-surface);
+    --border-base: var(--px-border);
+    --border-hover: var(--px-border-hover);
+    --text-primary: var(--px-text-primary);
+    --text-secondary: var(--px-text-secondary);
+    --text-muted: var(--px-text-muted);
+    --accent: var(--px-primary);
+  }
+
+  .dark {
+    --px-primary: #6366f1;
+    --px-primary-hover: #4f46e5;
+    --px-primary-subtle: rgba(99, 102, 241, 0.12);
+    --px-primary-text: #a5b4fc;
+    
+    --px-background: #080c14;
+    --px-surface: #0e1422;
+    --px-surface-elevated: #131b2e;
+    --px-surface-hover: #17223b;
+    --px-surface-subtle: #0b101c;
+    
+    --px-border: #1e293b;
+    --px-border-subtle: #141d2e;
+    --px-border-hover: #334155;
+    
+    --px-text-primary: #f8fafc;
+    --px-text-secondary: #94a3b8;
+    --px-text-muted: #64748b;
+    
+    --px-success: #34d399;
+    --px-warning: #fbbf24;
+    --px-error: #f87171;
+    
+    --px-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --px-shadow-md: 0 6px 16px -2px rgb(0 0 0 / 0.4);
+    --px-shadow-lg: 0 16px 36px -4px rgb(0 0 0 / 0.5);
+
+    /* Legacy mapping */
+    --bg-app: var(--px-background);
+    --bg-surface: var(--px-surface);
+    --border-base: var(--px-border);
+    --border-hover: var(--px-border-hover);
+    --text-primary: var(--px-text-primary);
+    --text-secondary: var(--px-text-secondary);
+    --text-muted: var(--px-text-muted);
+    --accent: var(--px-primary);
+  }
+
+  body {
+    background-color: var(--px-background);
+    color: var(--px-text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    color: var(--px-text-primary);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Card & Surface Tokens */
+.app-card {
+  background-color: var(--px-surface);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-lg);
+  box-shadow: var(--px-shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.app-card:hover {
+  border-color: var(--px-border-hover);
+}
+
+.app-card-interactive:hover {
+  border-color: var(--px-primary);
+  box-shadow: var(--px-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Subtle background accent glow */
+.hero-glow-bg {
+  background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+}
+
+.dark .hero-glow-bg {
+  background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 65%);
+}
+
+/* Checkerboard pattern for transparent image cutouts */
+.bg-checkered {
+  background-color: #f1f5f9;
+  background-image: 
+    linear-gradient(45deg, #e2e8f0 25%, transparent 25%), 
+    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #e2e8f0 75%), 
+    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+.dark .bg-checkered {
+  background-color: #0b101c;
+  background-image: 
+    linear-gradient(45deg, #131b2e 25%, transparent 25%), 
+    linear-gradient(-45deg, #131b2e 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #131b2e 75%), 
+    linear-gradient(-45deg, transparent 75%, #131b2e 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+/* Editorial Prose styling for CreateForge AI articles */
+.prose-createforge,
+.prose-pixora {
+  color: var(--px-text-primary);
+}
+.prose-createforge h1,
+.prose-pixora h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+  line-height: 1.25;
+}
+.prose-createforge h2,
+.prose-pixora h2 {
+  font-size: 1.28rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--px-border);
+  padding-bottom: 0.35rem;
+  line-height: 1.35;
+}
+.prose-createforge h3,
+.prose-pixora h3 {
+  font-size: 1.12rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1.1rem;
+}
+.prose-createforge p,
+.prose-pixora p {
+  margin-bottom: 0.95rem;
+  line-height: 1.7;
+  color: var(--px-text-secondary);
+}
+.prose-createforge ul,
+.prose-pixora ul {
+  list-style-type: disc;
+  padding-left: 1.3rem;
+  margin-bottom: 0.95rem;
+  color: var(--px-text-secondary);
+}
+.prose-createforge ol,
+.prose-pixora ol {
+  list-style-type: decimal;
+  padding-left: 1.3rem;
+  margin-bottom: 0.95rem;
+  color: var(--px-text-secondary);
+}
+.prose-createforge li,
+.prose-pixora li {
+  margin-bottom: 0.3rem;
+  line-height: 1.6;
+}
+.prose-createforge blockquote,
+.prose-pixora blockquote {
+  border-left: 3px solid var(--px-primary);
+  padding-left: 1rem;
+  margin: 1.2rem 0;
+  color: var(--px-text-muted);
+  font-style: italic;
+  background-color: var(--px-primary-subtle);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 0 var(--px-radius-sm) var(--px-radius-sm) 0;
+}
+.prose-createforge code,
+.prose-pixora code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85em;
+  background-color: var(--px-surface-hover);
+  padding: 0.15em 0.35em;
+  border-radius: var(--px-radius-sm);
+  border: 1px solid var(--px-border);
+}
+.prose-createforge pre,
+.prose-pixora pre {
+  background-color: #0b101d;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: var(--px-radius-md);
+  overflow-x: auto;
+  margin: 1rem 0;
+  border: 1px solid var(--px-border);
+}
+.prose-createforge pre code,
+.prose-pixora pre code {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  color: inherit;
+}
