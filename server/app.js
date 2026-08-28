@@ -35,6 +35,7 @@ const app = express();
 const allowedOrigins = [
   'https://createforgeai.tech',
   'https://www.createforgeai.tech',
+  'https://create-forge-ai-1.onrender.com',
   'http://localhost:5173',
   'http://localhost:5000',
   'http://127.0.0.1:5173',
@@ -53,12 +54,13 @@ app.use(
       if (
         allowedOrigins.includes(origin) ||
         origin.endsWith('.createforgeai.tech') ||
+        origin.endsWith('.onrender.com') ||
         origin.includes('localhost') ||
         origin.includes('127.0.0.1')
       ) {
         return callback(null, true);
       }
-      return callback(null, true);
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
