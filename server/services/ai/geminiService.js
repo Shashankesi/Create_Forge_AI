@@ -1,6 +1,8 @@
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+const AI_CONFIG = require('../../config/aiConfig');
+
 class GeminiService {
   constructor() {
     this.init();
@@ -28,14 +30,14 @@ class GeminiService {
   }
 
   /**
-   * Generate text completion using Gemini
+   * Generate text completion using Gemini with rapid fallback across candidate models
    */
   async generateText({ prompt, systemInstruction, temperature = 0.7, timeoutMs = 25000 }) {
     const client = this.getClient();
     if (!client) return null;
     const startTime = Date.now();
 
-    const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash'];
+    const candidateModels = AI_CONFIG.gemini.fallbackModels;
 
     for (const modelName of candidateModels) {
       try {
@@ -45,7 +47,7 @@ class GeminiService {
           systemInstruction: systemInstruction || undefined,
           generationConfig: {
             temperature,
-            maxOutputTokens: 3000,
+            maxOutputTokens: 3500,
           },
         });
 
@@ -58,10 +60,15 @@ class GeminiService {
         const response = await result.response;
         const text = response.text();
 
-        console.log(`[AI RESPONSE] provider=gemini model=${modelName} status=success duration=${Date.now() - startTime}ms`);
-        return text;
+        if (text) {
+          console.log(`[AI RESPONSE] provider=gemini model=${modelName} status=success duration=${Date.now() - startTime}ms`);
+          return text;
+        }
       } catch (err) {
         console.warn(`[AI ERROR] provider=gemini model=${modelName} error="${err.message}"`);
+        if (err.message && (err.message.includes('API key not valid') || err.message.includes('API_KEY_INVALID') || err.message.includes('400') || err.message.includes('404'))) {
+          break; // Key is invalid or model not found; don't waste time trying subsequent models
+        }
       }
     }
 
@@ -71,12 +78,12 @@ class GeminiService {
   /**
    * Generate structured JSON output using Gemini
    */
-  async generateJSON({ prompt, systemInstruction, timeoutMs = 25000 }) {
+  async generateJSON({ prompt, systemInstruction, timeoutMs = 15000 }) {
     const client = this.getClient();
     if (!client) return null;
     const startTime = Date.now();
 
-    const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash'];
+    const candidateModels = AI_CONFIG.gemini.fallbackModels;
 
     for (const modelName of candidateModels) {
       try {
@@ -86,8 +93,8 @@ class GeminiService {
           systemInstruction: systemInstruction || 'You are an AI that outputs strictly valid JSON only.',
           generationConfig: {
             responseMimeType: 'application/json',
-            temperature: 0.3,
-            maxOutputTokens: 2500,
+            temperature: 0.2,
+            maxOutputTokens: 3000,
           },
         });
 
@@ -105,6 +112,9 @@ class GeminiService {
         return parsed;
       } catch (err) {
         console.warn(`[AI ERROR] provider=gemini model=${modelName} json-error="${err.message}"`);
+        if (err.message && (err.message.includes('API key not valid') || err.message.includes('API_KEY_INVALID') || err.message.includes('400') || err.message.includes('404'))) {
+          break; // Key is invalid or model not found; don't waste time trying subsequent models
+        }
       }
     }
 

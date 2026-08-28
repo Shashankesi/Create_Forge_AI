@@ -5,7 +5,7 @@ const LanguageContext = createContext(null);
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguageState] = useState(() => {
-    const saved = localStorage.getItem('createforge_lang') || localStorage.getItem('pixora_lang');
+    const saved = localStorage.getItem('createforge_lang');
     return saved === 'hi' ? 'hi' : 'en';
   });
 
@@ -13,7 +13,6 @@ export const LanguageProvider = ({ children }) => {
     const validLang = lang === 'hi' ? 'hi' : 'en';
     setLanguageState(validLang);
     localStorage.setItem('createforge_lang', validLang);
-    localStorage.removeItem('pixora_lang');
   };
 
   const t = (key, fallback) => {

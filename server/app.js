@@ -10,6 +10,21 @@ const aiRoutes = require('./routes/aiRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 const historyRoutes = require('./routes/historyRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const brandRoutes = require('./routes/brandRoutes');
+const canvasRoutes = require('./routes/canvasRoutes');
+const briefRoutes = require('./routes/briefRoutes');
+const researchRoutes = require('./routes/researchRoutes');
+const versionRoutes = require('./routes/versionRoutes');
+const exportRoutes = require('./routes/exportRoutes');
+const campaignRoutes = require('./routes/campaignRoutes');
+const memoryRoutes = require('./routes/memoryRoutes');
+const moodboardRoutes = require('./routes/moodboardRoutes');
+const workflowRoutes = require('./routes/workflowRoutes');
+const multimodalRoutes = require('./routes/multimodalRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const searchRoutes = require('./routes/searchRoutes');
+const preferenceRoutes = require('./routes/preferenceRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -81,6 +96,21 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/brand', brandRoutes);
+app.use('/api/canvas', canvasRoutes);
+app.use('/api/briefs', briefRoutes);
+app.use('/api/research', researchRoutes);
+app.use('/api/versions', versionRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/memory', memoryRoutes);
+app.use('/api/moodboard', moodboardRoutes);
+app.use('/api/workflows', workflowRoutes);
+app.use('/api/multimodal', multimodalRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/preferences', preferenceRoutes);
 
 // Handle 404 for unhandled API routes
 app.use('/api/*', (req, res) => {

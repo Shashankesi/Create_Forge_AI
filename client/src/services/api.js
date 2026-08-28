@@ -14,8 +14,7 @@ api.interceptors.request.use(
   (config) => {
     const token =
       localStorage.getItem('createforge_token') ||
-      localStorage.getItem('token') ||
-      localStorage.getItem('pixora_token');
+      localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

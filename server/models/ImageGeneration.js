@@ -7,6 +7,11 @@ const imageGenerationSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    projectId: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      index: true,
+    },
     prompt: {
       type: String,
       required: true,
@@ -49,6 +54,15 @@ const imageGenerationSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    qualityScore: {
+      type: Number,
+      default: 88,
+    },
+    isFavorite: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     status: {
       type: String,
       enum: ['completed', 'failed'],
@@ -62,5 +76,6 @@ const imageGenerationSchema = new mongoose.Schema(
 );
 
 imageGenerationSchema.index({ userId: 1, createdAt: -1 });
+imageGenerationSchema.index({ userId: 1, projectId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('ImageGeneration', imageGenerationSchema);

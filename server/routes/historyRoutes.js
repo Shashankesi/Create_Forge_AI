@@ -5,6 +5,8 @@ const {
   getToolHistory,
   deleteHistoryItem,
   clearHistory,
+  toggleFavorite,
+  getUserStats,
 } = require('../controllers/historyController');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -12,7 +14,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 router.use(authMiddleware);
 
 router.get('/', getHistory);
+router.get('/stats', getUserStats);
 router.delete('/', clearHistory);
+router.patch('/:id/favorite', toggleFavorite);
+router.post('/:id/favorite', toggleFavorite);
 router.get('/:tool', getToolHistory);
 router.delete('/:id', deleteHistoryItem);
 

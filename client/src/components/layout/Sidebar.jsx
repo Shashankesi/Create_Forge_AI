@@ -6,11 +6,16 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   LayoutDashboard,
-  FileText,
+  BookOpen,
   Heading,
   Image as ImageIcon,
+  Share2,
+  Globe,
   Layers,
+  Folder,
   History,
+  Heart,
+  Palette,
   User,
   Settings,
   LogOut,
@@ -29,26 +34,46 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const navGroups = [
     {
-      title: t('menuWorkspace'),
+      title: 'WORKSPACE',
       items: [
-        { name: t('navDashboard'), path: '/dashboard', icon: LayoutDashboard },
-        { name: t('toolArticle'), path: '/tools/article', icon: FileText },
-        { name: t('toolTitles'), path: '/tools/titles', icon: Heading },
-        { name: t('toolImage'), path: '/tools/image', icon: ImageIcon },
-        { name: t('toolBackground'), path: '/tools/background-remove', icon: Layers },
+        { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
       ],
     },
     {
-      title: t('menuLibrary'),
+      title: 'CREATE',
       items: [
-        { name: t('toolHistory'), path: '/history', icon: History },
+        { name: 'Article Generator', path: '/article', icon: BookOpen },
+        { name: 'Blog Titles', path: '/titles', icon: Heading },
+        { name: 'Image Generator', path: '/image', icon: ImageIcon },
+        { name: 'Social Content', path: '/social-pack', icon: Share2 },
       ],
     },
     {
-      title: t('menuAccount'),
+      title: 'OPTIMIZE',
       items: [
-        { name: t('toolProfile'), path: '/profile', icon: User },
-        { name: t('toolSettings'), path: '/settings', icon: Settings },
+        { name: 'SEO Studio', path: '/seo-studio', icon: Globe },
+        { name: 'Background Remover', path: '/background-remover', icon: Layers },
+      ],
+    },
+    {
+      title: 'LIBRARY',
+      items: [
+        { name: 'Projects', path: '/projects', icon: Folder },
+        { name: 'History', path: '/history', icon: History },
+        { name: 'Favorites', path: '/favorites', icon: Heart },
+      ],
+    },
+    {
+      title: 'BRAND',
+      items: [
+        { name: 'Brand Kit', path: '/brand-kit', icon: Palette },
+      ],
+    },
+    {
+      title: 'ACCOUNT',
+      items: [
+        { name: 'Profile', path: '/profile', icon: User },
+        { name: 'Settings', path: '/settings', icon: Settings },
       ],
     },
   ];
@@ -71,10 +96,10 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
       </div>
 
       {/* Navigation Groups */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 custom-scrollbar">
         {navGroups.map((group, gIdx) => (
           <div key={gIdx} className="space-y-1">
-            <div className="px-3 pb-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            <div className="px-3 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               {group.title}
             </div>
             {group.items.map((item) => {
@@ -85,9 +110,9 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                   to={item.path}
                   onClick={() => setMobileOpen && setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
                     }`
                   }
@@ -102,28 +127,24 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
       </div>
 
       {/* User Footer */}
-      <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40">
-        <div className="flex items-center justify-between p-2 rounded-lg">
-          <NavLink
-            to="/profile"
-            onClick={() => setMobileOpen && setMobileOpen(false)}
-            className="flex items-center gap-2.5 min-w-0 flex-1"
-          >
-            <Avatar name={user?.name || 'User'} size="sm" />
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                {user?.name || 'User'}
-              </div>
-              <div className="text-[10px] text-slate-500 truncate">
+      <div className="p-3 border-t border-slate-100 dark:border-slate-800/80">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <div className="flex items-center gap-2.5 truncate">
+            <Avatar name={user?.name || 'Creator'} size="sm" />
+            <div className="truncate">
+              <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">
+                {user?.name || 'Creator'}
+              </span>
+              <span className="block text-[10px] text-slate-400 truncate">
                 {user?.email}
-              </div>
+              </span>
             </div>
-          </NavLink>
+          </div>
 
           <button
             onClick={handleLogout}
-            title={t('navLogout')}
-            className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 rounded-md transition-colors ml-1"
+            title="Log Out"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -134,21 +155,21 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:block w-60 h-screen sticky top-0 shrink-0 select-none">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-64 h-screen sticky top-0 shrink-0 z-40">
         {sidebarContent}
       </aside>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex select-none">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-64 max-w-full z-10 animate-in slide-in-from-left duration-200">
+          <aside className="fixed inset-y-0 left-0 w-64 shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {sidebarContent}
-          </div>
+          </aside>
         </div>
       )}
     </>

@@ -18,27 +18,52 @@ const connectDB = async () => {
   isConnecting = true;
   const primaryUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/createforge_ai';
   const fallbackUri = 'mongodb://127.0.0.1:27017/createforge_ai';
+  const dbName = process.env.MONGODB_DB_NAME || 'createforge_ai';
 
   try {
     const conn = await mongoose.connect(primaryUri, {
-      serverSelectionTimeoutMS: 3500,
+      dbName,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
       autoIndex: true,
     });
 
-    console.log(`✅ [MongoDB] Connected successfully to host: ${conn.connection.host}`);
+    console.log(`✅ [MongoDB] Connected successfully to host: ${conn.connection.host} (DB: ${conn.connection.name})`);
+
+    // Setup lifecycle event listeners
+    mongoose.connection.on('disconnected', () => {
+      console.warn('⚠️ [MongoDB] Disconnected from database.');
+    });
+
+    mongoose.connection.on('reconnected', () => {
+      console.log('🔄 [MongoDB] Reconnected to database.');
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ [MongoDB] Runtime connection error:', err.message);
+    });
+
     isConnecting = false;
     return conn;
   } catch (primaryErr) {
-    console.warn(`⚠️ [MongoDB] Primary connection attempt failed (${primaryErr.message})`);
+    console.warn(`⚠️ [MongoDB] Primary connection attempt failed: ${primaryErr.message}`);
+
+    if (primaryErr.message && primaryErr.message.includes('whitelist')) {
+      console.warn('💡 [MongoDB Atlas Tip] Make sure your current IP address or 0.0.0.0/0 is whitelisted in MongoDB Atlas (Network Access -> IP Access List).');
+    }
 
     if (primaryUri !== fallbackUri) {
       try {
         console.log('🔄 [MongoDB] Attempting fallback to local MongoDB instance...');
         const fallbackConn = await mongoose.connect(fallbackUri, {
-          serverSelectionTimeoutMS: 3000,
+          dbName,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
           autoIndex: true,
         });
-        console.log(`✅ [MongoDB] Connected successfully to fallback local host: ${fallbackConn.connection.host}`);
+        console.log(`✅ [MongoDB] Connected successfully to fallback local host: ${fallbackConn.connection.host} (DB: ${fallbackConn.connection.name})`);
         isConnecting = false;
         return fallbackConn;
       } catch (fallbackErr) {

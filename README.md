@@ -1,48 +1,73 @@
-# CreateForge AI..
+# CreateForge AI — AI Creative Production Studio
 
-AI-powered creative workspace platform for modern content creators, designers, and developers.
+CreateForge AI is an enterprise-grade AI Creative Production Studio that transforms a single creative concept into a complete omnichannel launch pipeline across writing, visual generation, research, SEO, social packs, and quality intelligence.
 
 [![Full-Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20Express%20%7C%20MongoDB-blue.svg)](#technology-stack)
 [![Image AI](https://img.shields.io/badge/Image%20Engine-FLUX%20Image%20Generation-indigo.svg)](#features)
 [![Text AI](https://img.shields.io/badge/Text%20Engine-Google%20Gemini%20%7C%20Groq-violet.svg)](#features)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**CreateForge AI** delivers four specialized, distraction-free creative tools within a single unified workspace:
+---
 
-- ✍️ **Article Generation**: Crafts structured, rich Markdown articles with customizable tones, target audiences, and length presets.
-- 💡 **Blog Title Generation**: Generates high-impact, categorized headline ideas for blogs and social content.
-- 🎨 **AI Image Generation**: Synthesizes high-fidelity visuals powered by the **FLUX** model across 10 aesthetic styles and 6 standardized aspect ratios.
-- ✂️ **Background Removal**: Extracts transparent cutouts for product shots and creative assets.
-- 📜 **Creative History**: Centralized user generation log with instant search, filtering, copying, and download capabilities.
+## 🌟 The Connected Omnichannel Creative Pipeline
+
+CreateForge AI operates as ONE connected studio where every stage shares the global project context:
+
+```
+IDEA ──► CREATIVE BRIEF ──► RESEARCH ──► STRATEGY ──► ARTICLE ──► FLUX VISUALS ──► SEO ──► SOCIAL ──► QUALITY ──► EXPORT ──► LAUNCH
+```
+
+1. **Autonomous Campaign Builder**: Synthesizes 8-stage omnichannel launch blueprints from a single prompt.
+2. **Creative Brief Studio**: Analyzes audience psychographics, core messaging, value propositions, and deliverables.
+3. **Research Studio**: Generates search intent matrices, content gap analysis, market insights, and competitive angles.
+4. **Blog Titles & Headline Lab**: Categorized headline generation with CTR scores, curiosity hooks, and head-to-head title comparison.
+5. **Article Generator & Inline AI Editor**: Long-form article drafting with real-time critic scoring, readability audits, and version control.
+6. **FLUX Image Generator**: High-fidelity visual creation powered by Pollinations with multi-style expansions and aspect ratios.
+7. **Social Content Pack**: Multi-channel copywriting for LinkedIn, X/Twitter, Instagram, YouTube, and Threads.
+8. **SEO Studio**: Search intent mapping, meta titles, descriptions, keyword matrices, and SERP previews.
+9. **Quality Center**: Unified CreateForge Quality Score (0-100) assessing content quality, brand consistency, and SEO.
+10. **10-Point Launch Readiness**: Real-time project asset verification ensuring campaigns are launch-ready.
+
+---
+
+## 🏛️ AI Provider & Orchestrator 2.0 Architecture
+
+CreateForge AI routes tasks intelligently between specialized providers:
+
+- **Google Gemini**: Complex multi-stage reasoning, long-form articles, research synthesis, briefs, brand intelligence, and SEO.
+- **Groq**: High-speed short generation, blog titles, hooks, social snippets, inline text transforms, and fast copilot interactions.
+- **Pollinations (FLUX)**: Photorealistic visual synthesis, aspect ratio mappings (1:1, 16:9, 9:16, 4:3, 3:4, 3:2), and variations.
+
+```
+                  USER REQUEST
+                       │
+                       ▼
+             [TASK CLASSIFICATION]
+                       │
+         ┌─────────────┴─────────────┐
+         ▼                           ▼
+[Google Gemini (Complex)]   [Groq (High-Speed)]
+         │                           │
+         └─────────────┬─────────────┘
+                       ▼
+      [STRUCTURED OUTPUT SERVICE 2.0]
+    (Markdown Stripping • JSON Repair • Schema Validation)
+                       │
+                       ▼
+          [MONGODB ATLAS PERSISTENCE]
+                       │
+                       ▼
+        [FRONTEND WORKSPACE RESPONSE]
+```
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons, Axios, React Router
+- **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons, Axios, React Router, Canvas Drag-and-Drop
 - **Backend**: Node.js, Express, MongoDB / Mongoose, JWT Authentication, Cookie-Parser, Multer
-- **AI Engine**: FLUX Image Generation, Google Gemini API, Groq AI API
-- **Cloud Storage**: Optional Cloudinary integration
-
----
-
-## 🏛️ AI Provider Architecture
-
-To maintain maximum security, all AI provider API calls happen strictly on the server backend. Private API keys are never exposed to the client application:
-
-```
-Client (React + Vite)
-        │
-        ▼ HTTP REST / JWT
-CreateForge Backend (Node.js + Express)
-        │
-        ├──► Pollinations / FLUX (Image Generation)
-        ├──► Google Gemini API (Text & JSON Synthesis)
-        └──► Groq API (Fast LLM Fallback)
-        │
-        ▼
-Response Returned to Client
-```
+- **AI Engines**: Google Gemini API, Groq AI API, Pollinations FLUX Engine
+- **Storage**: MongoDB Atlas, optional Cloudinary integration
 
 ---
 
@@ -51,42 +76,19 @@ Response Returned to Client
 ### Prerequisites
 
 - Node.js (v18.0.0 or higher)
-- MongoDB instance (local or MongoDB Atlas connection)
+- MongoDB instance (Local or MongoDB Atlas)
 - npm or yarn
 
 ### 1. Installation
 
-Install all project dependencies for both client and server:
-
 ```bash
-# Install server and client dependencies from root
+# Install dependencies for server and client
 npm run install:all
 ```
 
-Alternatively, install them individually:
+### 2. Environment Variables
 
-```bash
-# Install server dependencies
-cd server && npm install
-
-# Install client dependencies
-cd ../client && npm install
-```
-
----
-
-## ⚙️ Environment Setup
-
-### Server Configuration
-
-Create the server environment configuration file:
-
-```bash
-# Copy template in server directory
-cp server/.env.example server/.env
-```
-
-Edit `server/.env` with your own credentials:
+Create `server/.env` based on `server/.env.example`:
 
 ```env
 PORT=5000
@@ -94,101 +96,42 @@ NODE_ENV=development
 CLIENT_URL=http://localhost:5173
 
 # Database Connection
-MONGODB_URI=mongodb://localhost:27017/createforge_ai
+MONGODB_URI=your_mongodb_connection_string
 
-# JWT Authentication
-JWT_SECRET=your_long_random_jwt_secret_here
-JWT_EXPIRES_IN=7d
+# JWT Secret
+JWT_SECRET=your_secure_jwt_secret_key
 
-# AI API Providers (Server-side only)
-GEMINI_API_KEY=your_gemini_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
-POLLINATIONS_API_KEY=your_pollinations_api_key_here
-FLUX_API_KEY=your_flux_api_key_here
-
-# Optional Cloudinary Storage
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+# AI Provider API Keys (Stored backend-only)
+GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+POLLINATIONS_API_KEY=your_pollinations_key
 ```
 
-> **IMPORTANT**: Never commit `.env` files to Git. All private API keys and database credentials must remain local.
-
-### Client Configuration
-
-Create the client environment configuration file:
+### 3. Development Server
 
 ```bash
-# Copy template in client directory
-cp client/.env.example client/.env
-```
-
-Edit `client/.env`:
-
-```env
-# API Backend URL
-VITE_API_URL=http://localhost:5000/api
-```
-
-> **NOTE**: Vite environment variables starting with `VITE_` are bundled with client assets. Never put private AI provider keys into `client/.env`.
-
----
-
-## 💻 Local Development
-
-Run the development servers:
-
-```bash
-# Run both backend and frontend from root scripts:
-npm run dev:server    # Starts backend server on http://localhost:5000
-npm run dev:client    # Starts frontend app on http://localhost:5173
-```
-
-Or run directly from their respective directories:
-
-```bash
-# Backend (server directory)
-cd server
-npm run dev
-
-# Frontend (client directory)
-cd client
+# Run backend and frontend concurrently
 npm run dev
 ```
 
+The application will be accessible at `http://localhost:5173`.
+
 ---
 
-## 🧪 Testing & Validation
+## 🔒 Security & Data Isolation
 
-Run the backend automated test suite:
+- **Zero Client-Side Secrets**: All AI API keys and database credentials reside exclusively on the Express backend.
+- **Strict User & Project Isolation**: Every query and database operation is scoped by `userId` and `projectId`.
+- **Protected Endpoints**: All AI creation routes require valid JWT authentication and are protected by rate limiters.
+
+---
+
+## 🧪 Testing & Build Verification
 
 ```bash
-# Run server test suite from root
+# Run backend smoke tests & test suites
 npm run test:server
 
-# Or inside server directory
-cd server
-npm test
-```
-
-Build the client production bundle:
-
-```bash
-# Build client
+# Build frontend production bundle
 npm run build:client
 ```
-
----
-
-## 🔒 Security & Best Practices
-
-- **Zero Secret Exposure**: `.gitignore` strictly excludes all `.env`, secret keys, credentials, certificates, logs, and build artifacts.
-- **Backend API Gateway**: All AI requests route through the backend, keeping third-party keys hidden.
-- **HTTP-Only Cookies & Bearer Tokens**: Dual session handling ensuring secure web authentication.
-- **Input Sanitization & Normalization**: User inputs are sanitized and normalized before processing.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

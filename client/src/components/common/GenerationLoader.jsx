@@ -1,12 +1,12 @@
 import React from 'react';
-import { PixoraMark } from '../brand/PixoraMark';
+import { CreateForgeMark } from '../brand/CreateForgeMark';
 
 /**
  * GenerationLoader
  * Standardized AI generation state across all creative tools
  */
 export const GenerationLoader = ({
-  title = '✦ Pixora is creating',
+  title = '✦ CreateForge is creating',
   message = 'Processing your request…',
   steps = [],
   currentStepIndex = 0,
@@ -23,7 +23,7 @@ export const GenerationLoader = ({
       <div className="relative flex items-center justify-center">
         <div className="absolute w-20 h-20 rounded-3xl bg-indigo-500/15 dark:bg-indigo-500/25 animate-ping opacity-50 pointer-events-none" />
         <div className="relative w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/80 flex items-center justify-center shadow-lg">
-          <PixoraMark size={32} animate={true} />
+          <CreateForgeMark size={32} animate={true} />
         </div>
       </div>
 

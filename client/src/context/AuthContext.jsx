@@ -51,8 +51,6 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('createforge_token');
           localStorage.removeItem('createforge_user');
           localStorage.removeItem('token');
-          localStorage.removeItem('pixora_token');
-          localStorage.removeItem('pixora_user');
         }
       } finally {
         if (isMounted) {
@@ -81,8 +79,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', authToken);
       }
       localStorage.setItem('createforge_user', JSON.stringify(loggedInUser));
-      localStorage.removeItem('pixora_token');
-      localStorage.removeItem('pixora_user');
     }
     return res;
   };
@@ -100,8 +96,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', authToken);
       }
       localStorage.setItem('createforge_user', JSON.stringify(registeredUser));
-      localStorage.removeItem('pixora_token');
-      localStorage.removeItem('pixora_user');
     }
     return res;
   };
@@ -135,8 +129,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('createforge_token');
       localStorage.removeItem('createforge_user');
       localStorage.removeItem('token');
-      localStorage.removeItem('pixora_token');
-      localStorage.removeItem('pixora_user');
     }
   };
 

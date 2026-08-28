@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Sparkles, BookOpen, Clock, Copy, Download, CheckCircle2 } from 'lucide-react';
-import { PixoraMark } from '../brand/PixoraMark';
+import { CreateForgeMark } from '../brand/CreateForgeMark';
 
 export const HeroProductPreview = () => {
   const [stage, setStage] = useState('idle'); // 'idle' | 'generating' | 'complete'
@@ -58,7 +58,7 @@ export const HeroProductPreview = () => {
             </div>
             <div className="h-3 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <PixoraMark size={16} />
+              <CreateForgeMark size={16} />
               <span>Article Workspace</span>
             </div>
           </div>
@@ -140,11 +140,11 @@ export const HeroProductPreview = () => {
             {stage === 'generating' ? (
               <div className="flex-1 flex flex-col items-center justify-center space-y-4 text-center py-8 animate-in fade-in duration-200">
                 <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 animate-pulse">
-                  <PixoraMark size={24} animate={true} />
+                  <CreateForgeMark size={24} animate={true} />
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    ✦ Pixora is creating
+                    ✦ CreateForge is creating
                   </h4>
                   <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
                     {subSteps[subStep]}…

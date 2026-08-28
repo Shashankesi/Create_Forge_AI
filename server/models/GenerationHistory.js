@@ -7,9 +7,26 @@ const generationHistorySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    projectId: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      index: true,
+    },
     tool: {
       type: String,
-      enum: ['article', 'title', 'image', 'background-removal'],
+      enum: [
+        'article',
+        'title',
+        'image',
+        'background-removal',
+        'brief',
+        'research',
+        'social',
+        'seo',
+        'campaign',
+        'creative-direction',
+        'quality',
+      ],
       required: true,
       index: true,
     },
@@ -21,6 +38,11 @@ const generationHistorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       required: true,
     },
+    isFavorite: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     metadata: {
       provider: { type: String, default: 'gemini' },
       model: { type: String },
@@ -30,12 +52,11 @@ const generationHistorySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    bufferCommands: false,
-    autoIndex: false,
   }
 );
 
 generationHistorySchema.index({ userId: 1, tool: 1, createdAt: -1 });
+generationHistorySchema.index({ userId: 1, projectId: 1, createdAt: -1 });
 generationHistorySchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('GenerationHistory', generationHistorySchema);

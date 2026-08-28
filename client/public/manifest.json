@@ -1,0 +1,15 @@
+{
+  "short_name": "CreateForge AI",
+  "name": "CreateForge AI — AI Creative Studio",
+  "icons": [
+    {
+      "src": "/createforge-mark.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#080c14",
+  "theme_color": "#4f46e5",
+  "display": "standalone"
+}

@@ -11,6 +11,7 @@ import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
+import { useProject } from '../context/ProjectContext';
 import { aiService } from '../services/aiService';
 
 const MIN_GENERATION_DISPLAY_TIME = 600;
@@ -18,6 +19,7 @@ const MIN_GENERATION_DISPLAY_TIME = 600;
 export const BackgroundRemoverPage = () => {
   const { t } = useLanguage();
   const { showToast } = useToast();
+  const { activeProject, addAssetToActiveProject } = useProject();
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -247,13 +249,33 @@ export const BackgroundRemoverPage = () => {
 
             <div className="flex items-center gap-2">
               {result && (
-                <Button
-                  size="sm"
-                  icon={Download}
-                  onClick={handleDownload}
-                >
-                  {t('downloadCutoutBtn')}
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (activeProject) {
+                        addAssetToActiveProject({
+                          assetType: 'image',
+                          title: selectedFile?.name ? `Cutout: ${selectedFile.name}` : 'Transparent PNG Cutout',
+                          previewUrl: result.processedImageUrl,
+                          content: result,
+                        });
+                      } else {
+                        showToast('Select or create an active project to save.', 'info');
+                      }
+                    }}
+                  >
+                    Save to Project
+                  </Button>
+                  <Button
+                    size="sm"
+                    icon={Download}
+                    onClick={handleDownload}
+                  >
+                    {t('downloadCutoutBtn')}
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -290,6 +312,7 @@ export const BackgroundRemoverPage = () => {
       title={t('bgRemoverTitle')}
       subtitle={t('bgRemoverSubtitle')}
       icon={Layers}
+      hideWorkflow={true}
       leftPane={leftPane}
       rightPane={rightPane}
       isLoading={loading}

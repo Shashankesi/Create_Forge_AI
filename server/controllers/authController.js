@@ -360,10 +360,55 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+/**
+ * @route   PUT /api/auth/profile
+ * @desc    Update authenticated user profile (name, bio, avatar, preferences)
+ * @access  Private
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const { name, bio, avatar, preferences } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found.',
+      });
+    }
+
+    if (name && typeof name === 'string') user.name = name.trim();
+    if (bio !== undefined && typeof bio === 'string') user.bio = bio.trim();
+    if (avatar !== undefined && typeof avatar === 'string') user.avatar = avatar.trim();
+    if (preferences && typeof preferences === 'object') {
+      user.preferences = {
+        ...user.preferences,
+        ...preferences,
+      };
+    }
+
+    await user.save();
+    const safeUser = user.toSafeObject();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      user: safeUser,
+      data: {
+        user: safeUser,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   getMe,
   changePassword,
+  updateProfile,
 };

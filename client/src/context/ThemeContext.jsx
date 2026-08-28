@@ -4,7 +4,7 @@ const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setThemeState] = useState(() => {
-    return localStorage.getItem('createforge_theme') || localStorage.getItem('pixora_theme') || 'system';
+    return localStorage.getItem('createforge_theme') || 'system';
   });
 
   const [resolvedTheme, setResolvedTheme] = useState('dark');
@@ -43,7 +43,6 @@ export const ThemeProvider = ({ children }) => {
     const valid = ['light', 'dark', 'system'].includes(newTheme) ? newTheme : 'system';
     setThemeState(valid);
     localStorage.setItem('createforge_theme', valid);
-    localStorage.removeItem('pixora_theme');
   };
 
   const toggleTheme = () => {

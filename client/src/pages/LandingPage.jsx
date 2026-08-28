@@ -16,6 +16,7 @@ import {
 import { Button } from '../components/common/Button';
 import { CreateForgeCore } from '../components/home/CreateForgeCore';
 import { HeroProductPreview } from '../components/home/HeroProductPreview';
+import { CampaignPipelineFlow } from '../components/home/CampaignPipelineFlow';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -102,6 +103,11 @@ export const LandingPage = () => {
         <div className="pt-2">
           <HeroProductPreview />
         </div>
+
+        {/* 3.5 Autonomous Campaign Flow Pipeline */}
+        <div className="pt-10">
+          <CampaignPipelineFlow />
+        </div>
       </section>
 
       {/* 4. Tools Showcase Section */}
@@ -115,155 +121,167 @@ export const LandingPage = () => {
           </p>
         </div>
 
-        {/* Asymmetrical Tool Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+        {/* Asymmetrical Tool Cards Grid: 4 Flagship Experiences */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
           {/* Tool Card: Article Generator */}
-          <div className="md:col-span-7 app-card app-card-interactive p-6 sm:p-8 flex flex-col justify-between group">
+          <div className="app-card app-card-interactive p-6 flex flex-col justify-between group">
             <div className="space-y-4">
               <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200/60 dark:border-indigo-800/40">
                 <FileText className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-['Outfit']">
-                  {t('toolArticle')}
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Outfit']">
+                  Article Generator
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {t('cardArticleDesc')}
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Structured blog posts, how-to guides, thought leadership, live quality scores & inline AI editing.
                 </p>
               </div>
             </div>
-            <div className="pt-6">
+            <div className="pt-5">
               <Link
-                to="/tools/article"
+                to="/article"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform"
               >
-                <span>{t('openArticleGen')}</span>
+                <span>Open Article Studio →</span>
               </Link>
             </div>
           </div>
 
           {/* Tool Card: Blog Titles */}
-          <div className="md:col-span-5 app-card app-card-interactive p-6 sm:p-8 flex flex-col justify-between group">
+          <div className="app-card app-card-interactive p-6 flex flex-col justify-between group">
             <div className="space-y-4">
               <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-200/60 dark:border-purple-800/40">
                 <Heading className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-['Outfit']">
-                  {t('toolTitles')}
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Outfit']">
+                  Blog Title Lab
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {t('cardTitlesDesc')}
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  High-converting headline angles, AI CTR estimates, and side-by-side A/B comparison.
                 </p>
               </div>
             </div>
-            <div className="pt-6">
+            <div className="pt-5">
               <Link
-                to="/tools/titles"
+                to="/titles"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform"
               >
-                <span>{t('openTitleGen')}</span>
+                <span>Open Title Lab →</span>
               </Link>
             </div>
           </div>
 
           {/* Tool Card: Image Generator */}
-          <div className="md:col-span-5 app-card app-card-interactive p-6 sm:p-8 flex flex-col justify-between group">
+          <div className="app-card app-card-interactive p-6 flex flex-col justify-between group">
             <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200/60 dark:border-amber-800/40">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/40">
                 <ImageIcon className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-['Outfit']">
-                  {t('toolImage')}
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Outfit']">
+                  Image Generator
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {t('cardImageDesc')}
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Pollinations FLUX image generation, cinematic styles, custom aspect ratios, and auto-refinement.
                 </p>
               </div>
             </div>
-            <div className="pt-6">
+            <div className="pt-5">
               <Link
-                to="/tools/image"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform"
+                to="/image"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform"
               >
-                <span>{t('openImageGen')}</span>
+                <span>Create Visuals →</span>
               </Link>
             </div>
           </div>
 
-          {/* Tool Card: Background Remover */}
-          <div className="md:col-span-7 app-card app-card-interactive p-6 sm:p-8 flex flex-col justify-between group">
+          {/* Tool Card: Social Content */}
+          <div className="app-card app-card-interactive p-6 flex flex-col justify-between group">
             <div className="space-y-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/40">
-                <Layers className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-400 flex items-center justify-center border border-pink-200/60 dark:border-pink-800/40">
+                <Sparkles className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-['Outfit']">
-                  {t('toolBackground')}
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Outfit']">
+                  Social Content Pack
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {t('cardBackgroundDesc')}
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Platform-tailored LinkedIn posts, X threads, Instagram carousels, and YouTube video scripts.
                 </p>
               </div>
             </div>
-            <div className="pt-6">
+            <div className="pt-5">
               <Link
-                to="/tools/background-remove"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform"
+                to="/social-pack"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-pink-600 dark:text-pink-400 group-hover:translate-x-1 transition-transform"
               >
-                <span>{t('openBgRemover')}</span>
+                <span>Generate Social →</span>
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 5. How It Works Section */}
+      {/* 5. How It Works Section: IDEA -> CREATE -> IMPROVE -> PUBLISH */}
       <section id="how-it-works" className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
         <div className="text-center space-y-2 max-w-xl mx-auto">
           <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-white font-['Outfit']">
-            {t('howItWorksTitle')}
+            How It Works
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {t('howItWorksSubtitle')}
+            A seamless four-step creative pipeline from initial concept to published asset.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="app-card p-6 sm:p-8 space-y-3 relative overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="app-card p-6 space-y-2.5 relative overflow-hidden">
             <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 font-mono">
-              {t('step1Title')}
+              01 IDEA
             </span>
             <h3 className="text-base font-bold text-slate-900 dark:text-white font-['Outfit']">
-              Select your creative tool
+              Input Concept
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {t('step1Desc')}
+              Start with a prompt, rough idea, or active project context in the universal creation box.
             </p>
           </div>
 
-          <div className="app-card p-6 sm:p-8 space-y-3 relative overflow-hidden">
+          <div className="app-card p-6 space-y-2.5 relative overflow-hidden">
             <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">
-              {t('step2Title')}
+              02 CREATE
             </span>
             <h3 className="text-base font-bold text-slate-900 dark:text-white font-['Outfit']">
-              Configure tone and prompt
+              Generate Assets
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {t('step2Desc')}
+              Synthesize structured articles, FLUX visuals, high-CTR titles, and social packs instantly.
             </p>
           </div>
 
-          <div className="app-card p-6 sm:p-8 space-y-3 relative overflow-hidden">
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-              {t('step3Title')}
+          <div className="app-card p-6 space-y-2.5 relative overflow-hidden">
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono">
+              03 IMPROVE
             </span>
             <h3 className="text-base font-bold text-slate-900 dark:text-white font-['Outfit']">
-              Cross-connect and export
+              Score & Refine
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {t('step3Desc')}
+              Audit quality, SEO, and brand consistency. Use inline AI editing to polish weakest areas.
+            </p>
+          </div>
+
+          <div className="app-card p-6 space-y-2.5 relative overflow-hidden">
+            <span className="text-xs font-bold text-pink-600 dark:text-pink-400 font-mono">
+              04 PUBLISH
+            </span>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white font-['Outfit']">
+              Export & Organize
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Save to project, export in Markdown / TXT / HTML, or copy directly for instant publishing.
             </p>
           </div>
         </div>

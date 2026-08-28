@@ -1,6 +1,5 @@
 import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { PixoraMark } from '../brand/PixoraMark';
 
 export const SuccessState = ({
   title = 'Created successfully',

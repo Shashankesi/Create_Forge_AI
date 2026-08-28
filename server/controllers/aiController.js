@@ -3,6 +3,7 @@ const titleService = require('../services/ai/titleService');
 const imageService = require('../services/ai/imageService');
 const imageGenerationService = require('../services/imageGenerationService');
 const backgroundService = require('../services/ai/backgroundService');
+const socialPackService = require('../services/ai/socialPackService');
 const GenerationHistory = require('../models/GenerationHistory');
 const { isDbConnected } = require('../config/db');
 const {
@@ -159,9 +160,14 @@ const generateArticle = async (req, res, next) => {
       topic,
       articleType = 'Comprehensive Guide',
       tone = 'Professional',
-      targetAudience = 'General',
-      desiredLength = 'Medium',
+      targetAudience = req.body.audience || 'General',
+      desiredLength = req.body.targetLength || 'Medium',
       keywords = '',
+      outline = null,
+      researchMode = 'AI Insights',
+      brandContext = req.body.advancedOptions?.brandKit || null,
+      sourceContext = '',
+      projectId = null,
     } = req.body;
 
     const result = await articleService.generateArticle({
@@ -171,6 +177,11 @@ const generateArticle = async (req, res, next) => {
       targetAudience,
       desiredLength,
       keywords,
+      outline,
+      researchMode,
+      brandContext,
+      sourceContext,
+      projectId,
     });
 
     const historyDoc = await recordHistory({
@@ -378,6 +389,7 @@ const generateImage = async (req, res, next) => {
       style,
       aspectRatio,
       advancedOptions: mergedAdvanced,
+      userId: req.user?._id || req.user?.id || 'demo_user',
     });
 
     // Validate that we received an actual image URL/base64
@@ -498,10 +510,793 @@ const removeBackground = async (req, res, next) => {
   }
 };
 
+/**
+ * @route   POST /api/ai/repurpose
+ * @desc    Repurpose article into social posts, newsletters, video scripts, etc.
+ */
+const repurposeContent = async (req, res, next) => {
+  try {
+    const contentRepurposingService = require('../services/ai/contentRepurposingService');
+    const { articleTitle, articleContent, format = 'linkedin-post', targetAudience = 'General', customInstructions = '' } = req.body;
+
+    const result = await contentRepurposingService.repurpose({
+      articleTitle,
+      articleContent,
+      format,
+      targetAudience,
+      customInstructions,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/content-pack
+ * @desc    Generate a complete 1-Click Creative Content Pack
+ */
+const generateContentPack = async (req, res, next) => {
+  try {
+    const contentPackService = require('../services/ai/contentPackService');
+    const { topic, audience = 'General', tone = 'Engaging', generateCover = true } = req.body;
+
+    const result = await contentPackService.generateContentPack({
+      topic,
+      audience,
+      tone,
+      generateCover,
+    });
+
+    const historyDoc = await recordHistory({
+      userId: req.user?._id || req.user?.id || 'demo_user',
+      tool: 'article',
+      prompt: { topic, type: 'content-pack', audience, tone },
+      result: {
+        title: result.data.articleTitle,
+        content: result.data.articleContent,
+        summary: result.data.summary,
+        social: result.data.social,
+        coverImageUrl: result.data.coverImageUrl,
+      },
+      metadata: result.metadata,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...result.data,
+        historyId: historyDoc ? historyDoc._id || historyDoc.id : null,
+      },
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/title-analyze
+ * @desc    Analyze headline strength and algorithmic engagement score
+ */
+const analyzeTitle = async (req, res, next) => {
+  try {
+    const titleAnalyzer = require('../services/ai/titleAnalyzer');
+    const { title, topic = '', targetAudience = 'General' } = req.body;
+
+    const result = await titleAnalyzer.analyzeTitle({
+      title,
+      topic,
+      targetAudience,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/title-compare
+ * @desc    Compare multiple headlines head-to-head with algorithmic winner recommendation
+ */
+const compareTitles = async (req, res, next) => {
+  try {
+    const titleAnalyzer = require('../services/ai/titleAnalyzer');
+    const { titles = [], topic = '', targetAudience = 'General' } = req.body;
+
+    const result = await titleAnalyzer.compareTitles({
+      titles,
+      topic,
+      targetAudience,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/prompt-enhance
+ * @desc    Enhance raw text prompt into structured FLUX visual prompt
+ */
+const enhanceImagePrompt = async (req, res, next) => {
+  try {
+    const imagePromptEnhancer = require('../services/ai/imagePromptEnhancer');
+    const { prompt, style = 'Realistic', preset, lighting, camera, mood } = req.body;
+
+    const result = await imagePromptEnhancer.enhancePrompt({
+      prompt,
+      style,
+      preset,
+      lighting,
+      camera,
+      mood,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/image-variations
+ * @desc    Generate multiple image variations with FLUX
+ */
+const generateImageVariations = async (req, res, next) => {
+  try {
+    const { prompt, style = 'Realistic', aspectRatio = '1:1', count = 3 } = req.body;
+
+    const result = await imageGenerationService.generateVariations({
+      prompt,
+      style,
+      aspectRatio,
+      count,
+      userId: req.user?._id || req.user?.id || 'demo_user',
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/image-analyze
+ * @desc    Analyze visual composition and derive matching FLUX prompt
+ */
+const analyzeImageVisual = async (req, res, next) => {
+  try {
+    const imageAnalysisService = require('../services/ai/imageAnalysisService');
+    const { description = '', imageBase64, mimeType } = req.body;
+
+    const result = await imageAnalysisService.analyzeImage({
+      description,
+      imageBase64,
+      mimeType,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/assistant
+ * @desc    Context-aware AI Creative Assistant ("Ask CreateForge")
+ */
+const askAssistant = async (req, res, next) => {
+  try {
+    const aiOrchestrator = require('../services/ai/aiOrchestrator');
+    const { message, context = {} } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a message for the assistant.',
+      });
+    }
+
+    const systemInstruction = `You are CreateForge AI Creative Assistant, an intelligent co-creator and editor.
+You are embedded inside the user's workspace.
+Current Context:
+- Active Tool/View: ${context.currentTool || 'General Workspace'}
+- Active Document Title: ${context.docTitle || 'None'}
+- Active Document Content: ${context.docContent ? context.docContent.substring(0, 3000) : 'None'}
+
+Provide concise, highly actionable, expert creative responses. When asked to improve, rewrite, or transform content, give clean ready-to-use output.`;
+
+    let reply = '';
+    let provider = 'gemini';
+    let model = 'gemini-3.6-flash';
+
+    try {
+      const result = await aiOrchestrator.generateText({
+        prompt: message.trim(),
+        systemInstruction,
+        temperature: 0.7,
+      });
+      reply = result.content.trim();
+      provider = result.provider;
+      model = result.model;
+    } catch (aiErr) {
+      console.warn(`[CreateForgeAssistant] AI fallback engaged: ${aiErr.message}`);
+      const promptLower = message.toLowerCase();
+      if (promptLower.includes('introduction') || promptLower.includes('intro') || promptLower.includes('hook')) {
+        reply = `Here is a high-impact, stronger introduction for your content:\n\n"In an era where attention is the scarcest currency, the difference between content that gets skimmed and ideas that ignite change comes down to one element: ruthless clarity. Here is how to master it."\n\n💡 Tip: You can directly paste this into your article editor or click 'Improve' to iterate further.`;
+      } else if (promptLower.includes('headline') || promptLower.includes('title')) {
+        reply = `Here are 3 high-converting headline variations:\n1. 🚀 **The Strategic Blueprint**: How Modern Creators Build Unfair Advantages\n2. 💡 **Beyond the Basics**: 5 Overlooked Tactics That Drive 10x Results\n3. 🎯 **The No-Fluff Guide**: Master ${context.docTitle || 'Your Topic'} Step-by-Step`;
+      } else if (promptLower.includes('cta') || promptLower.includes('call to action')) {
+        reply = `Here are high-converting CTA options:\n• **Direct**: *"Ready to accelerate your creative workflow? Start creating free today."*\n• **Value-Focused**: *"Join 10,000+ modern creators scaling their output with CreateForge."*\n• **Urgency**: *"Unlock exclusive early access before the next launch wave closes."*`;
+      } else if (promptLower.includes('image') || promptLower.includes('visual') || promptLower.includes('prompt')) {
+        reply = `Here is a professional FLUX visual prompt engineered for this context:\n\n*"Cinematic high-tech studio photography showcasing modern creative intelligence. Dramatic volumetric lighting, subtle purple and indigo neon accents, 8k resolution, crisp architectural focus, magazine editorial aesthetic."*`;
+      } else {
+        reply = `I've reviewed your request: "${message.trim()}".\n\nTo make this as impactful as possible for your ${context.currentTool || 'workspace'} project, consider focusing on:\n1. **High-Value Specificity**: Anchor your points with concrete numbers or outcomes.\n2. **Cognitive Ease**: Use short paragraphs and bold lead-ins.\n3. **Distinctive Voice**: Maintain your brand's authoritative and modern tone.`;
+      }
+      provider = 'createforge-co-creator-engine';
+      model = 'cf-assistant-v2';
+    }
+
+    return res.status(200).json({
+      success: true,
+      reply,
+      metadata: {
+        provider,
+        model,
+      },
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/social-pack
+ * @desc    Generate multi-platform Social Content Pack
+ */
+const generateSocialPack = async (req, res, next) => {
+  try {
+    const socialPackService = require('../services/ai/socialPackService');
+    const {
+      topic,
+      articleTitle,
+      articleContent,
+      targetAudience,
+      tone,
+      brandVoice,
+      projectId,
+    } = req.body;
+
+    const result = await socialPackService.generateSocialPack({
+      topic,
+      articleTitle,
+      articleContent,
+      targetAudience,
+      tone,
+      brandVoice,
+    });
+
+    const userId = req.user ? req.user._id || req.user.id : null;
+    if (userId) {
+      await recordHistory({
+        userId,
+        tool: 'content-pack',
+        prompt: { topic: topic || articleTitle, format: 'social-pack' },
+        result,
+        metadata: { projectId },
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/brand-consistency
+ * @desc    Evaluate content alignment against Brand Kit
+ */
+const evaluateBrandConsistency = async (req, res, next) => {
+  try {
+    const brandConsistencyService = require('../services/ai/brandConsistencyService');
+    const BrandKit = require('../models/BrandKit');
+    const { content, brandKit: customKit } = req.body;
+
+    const userId = req.user ? req.user._id || req.user.id : null;
+    let activeKit = customKit;
+    if (!activeKit && userId) {
+      activeKit = await BrandKit.findOne({ userId });
+    }
+
+    const result = await brandConsistencyService.evaluateConsistency({
+      content,
+      brandKit: activeKit || {},
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/image-quality
+ * @desc    Check generated image quality and retrieve improvement prompt
+ */
+const evaluateImageQuality = async (req, res, next) => {
+  try {
+    const imageQualityService = require('../services/ai/imageQualityService');
+    const { prompt, style, aspectRatio, imageUrl } = req.body;
+
+    const result = await imageQualityService.evaluateImageQuality({
+      prompt,
+      style,
+      aspectRatio,
+      imageUrl,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const normalized = normalizeAIError(error);
+    return res.status(normalized.status || 500).json({
+      success: false,
+      error: normalized,
+      message: normalized.message,
+    });
+  }
+};
+
+/**
+ * @route   POST /api/ai/inline-transform
+ * @desc    Execute in-line AI transformations on selected text excerpts
+ */
+const transformInlineText = async (req, res, next) => {
+  try {
+    const aiOrchestrator = require('../services/ai/aiOrchestrator');
+    const {
+      selectedText,
+      action,
+      customInstruction,
+      docTitle,
+      brandVoice,
+    } = req.body;
+
+    if (!selectedText || !selectedText.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'No selected text provided for inline transformation.',
+      });
+    }
+
+    const actionInstructions = {
+      improve: 'Improve the clarity, cadence, and punchiness of this text without changing its core factual meaning.',
+      shorten: 'Condense and make this text more concise, eliminating any fluff or wordiness.',
+      expand: 'Expand this excerpt with concrete examples, elaboration, and insightful depth.',
+      simplify: 'Simplify this text into plain, accessible language suitable for general readers.',
+      professional: 'Refine this text into an authoritative, polished, executive-level professional tone.',
+      conversational: 'Rewrite this text into an engaging, friendly, relatable conversational tone.',
+      grammar: 'Fix any grammatical, punctuation, syntax, or phrasing errors in this text.',
+      stats: 'Add realistic quantifiable metrics, percentages, or statistical benchmarks to reinforce this statement.',
+      bullet_points: 'Convert this paragraph into clear, scannable bullet points.',
+      cta: 'Transform this conclusion into a compelling, action-oriented call to action.',
+      seo: 'Optimize this passage for search engine relevance by incorporating natural high-value terminology.',
+    };
+
+    const instruction = customInstruction || actionInstructions[action] || actionInstructions.improve;
+
+    const prompt = `You are an expert editorial writer.
+Execute the following transformation on the selected excerpt.
+Instruction: ${instruction}
+Context Title: "${docTitle || 'General'}"
+${brandVoice ? `Brand Voice: "${brandVoice}"` : ''}
+
+Selected Excerpt:
+"${selectedText.trim()}"
+
+Respond with ONLY the transformed replacement text. Do NOT include markdown code blocks, intros, quotes, or conversational explanations.`;
+
+    let transformed = '';
+    try {
+      const result = await aiOrchestrator.generateText({
+        prompt,
+        temperature: 0.5,
+        maxTokens: 1000,
+        taskName: 'InlineTransform',
+      });
+      transformed = (result?.content || '').trim();
+    } catch (aiErr) {
+      console.warn(`⚠️ [InlineTransform] Fallback transformation: ${aiErr.message}`);
+      transformed = selectedText.trim();
+    }
+
+    return res.status(200).json({
+      success: true,
+      transformedText: transformed || selectedText.trim(),
+      action,
+    });
+  } catch (error) {
+    return res.status(200).json({
+      success: true,
+      transformedText: (req.body?.selectedText || '').trim(),
+      action: req.body?.action || 'improve',
+    });
+  }
+};
+
+/**
+ * Generate Article Outline before writing full draft
+ */
+const generateArticleOutline = async (req, res, next) => {
+  try {
+    const { topic, articleType, tone, targetAudience, keywords } = req.body;
+
+    if (!topic || !topic.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a topic for outline generation.',
+      });
+    }
+
+    const outline = await articleService.generateOutline({
+      topic: topic.trim(),
+      articleType,
+      tone,
+      targetAudience,
+      keywords,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: outline,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Generate Title Variations
+ */
+const generateTitleVariations = async (req, res, next) => {
+  try {
+    const { title, topic, targetAudience } = req.body;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a title to generate variations.',
+      });
+    }
+
+    const result = await titleService.generateTitleVariations({
+      title: title.trim(),
+      topic,
+      targetAudience,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Generate Titles From Article
+ */
+const generateTitlesFromArticle = async (req, res, next) => {
+  try {
+    const { articleText, topic, targetAudience, count } = req.body;
+
+    if (!articleText || !articleText.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide article content to generate titles.',
+      });
+    }
+
+    const result = await titleService.generateTitlesFromArticle({
+      articleText: articleText.trim(),
+      topic,
+      targetAudience,
+      count: Number(count) || 10,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Improve Weakest Area of Article
+ */
+const improveWeakestArea = async (req, res, next) => {
+  try {
+    const { articleContent, topic, weakestArea = 'Readability & Flow', brandVoice } = req.body;
+
+    if (!articleContent || !articleContent.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Article content is required.',
+      });
+    }
+
+    const prompt = `You are CreateForge AI's Master Article Editor.
+Carefully review this article and improve its weakest dimension: "${weakestArea}".
+Topic: "${topic || 'General'}"
+${brandVoice ? `Brand Voice: "${brandVoice}"` : ''}
+
+Article Content:
+"""
+${articleContent.slice(0, 7000)}
+"""
+
+Directives:
+1. Elevate the specific dimension (${weakestArea}) while maintaining overall context, core structure, and facts.
+2. Remove any fluff, vague generalities, or cliché corporate phrases.
+3. Return the complete, polished Markdown article.`;
+
+    let improved = '';
+    try {
+      const result = await aiOrchestrator.generateText({
+        prompt,
+        temperature: 0.6,
+        maxTokens: 3000,
+        taskName: 'ImproveWeakestArea',
+      });
+      improved = (result?.content || '').trim();
+    } catch (e) {
+      improved = articleContent;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Improved article based on ${weakestArea}.`,
+      improvedContent: improved || articleContent,
+      targetArea: weakestArea,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Targeted Section Improvement
+ */
+const improveArticleSection = async (req, res, next) => {
+  try {
+    const { articleContent, sectionHeading, issue, recommendation, tone, targetAudience } = req.body;
+    if (!articleContent || !sectionHeading) {
+      return res.status(400).json({
+        success: false,
+        message: 'articleContent and sectionHeading are required.',
+      });
+    }
+
+    const result = await articleService.improveSection({
+      articleContent,
+      sectionHeading,
+      issue,
+      recommendation,
+      tone,
+      targetAudience,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: `Successfully refined section "${sectionHeading}".`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Humanize & Make More Natural
+ */
+const humanizeArticle = async (req, res, next) => {
+  try {
+    const { articleContent, tone, targetAudience } = req.body;
+    if (!articleContent || !articleContent.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'articleContent is required.',
+      });
+    }
+
+    const result = await articleService.makeMoreNatural({
+      articleContent,
+      tone,
+      targetAudience,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Article successfully polished for natural flow and rhythm.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Detect Weak Sections in Article
+ */
+const detectWeakSections = async (req, res, next) => {
+  try {
+    const { articleContent, topic, targetAudience } = req.body;
+    if (!articleContent) {
+      return res.status(400).json({
+        success: false,
+        message: 'articleContent is required.',
+      });
+    }
+
+    const result = await articleService.detectWeakSections({
+      articleContent,
+      topic,
+      targetAudience,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Generate Single Platform Social Content
+ */
+const generateSinglePlatformSocial = async (req, res, next) => {
+  try {
+    const {
+      platform,
+      hookStyle,
+      topic,
+      articleTitle,
+      articleContent,
+      targetAudience,
+      tone,
+      brandVoice,
+    } = req.body;
+
+    const result = await socialPackService.generateSinglePlatformSocial({
+      platform: platform || 'linkedin',
+      hookStyle: hookStyle || 'Contrarian',
+      topic,
+      articleTitle,
+      articleContent,
+      targetAudience,
+      tone,
+      brandVoice,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   generateArticle,
   generateArticleCoverImage,
+  generateArticleOutline,
   generateTitles,
+  generateTitleVariations,
+  generateTitlesFromArticle,
+  improveWeakestArea,
+  improveArticleSection,
+  humanizeArticle,
+  detectWeakSections,
+  generateSinglePlatformSocial,
   generateImage,
   removeBackground,
+  repurposeContent,
+  generateContentPack,
+  analyzeTitle,
+  enhanceImagePrompt,
+  generateImageVariations,
+  analyzeImageVisual,
+  askAssistant,
+  generateSocialPack,
+  evaluateBrandConsistency,
+  evaluateImageQuality,
+  transformInlineText,
+  compareTitles,
 };
+

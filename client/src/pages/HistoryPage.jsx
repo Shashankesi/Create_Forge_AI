@@ -9,57 +9,72 @@ import {
   Image as ImageIcon,
   Layers,
   Calendar,
-  Eye,
-  X,
   Sparkles,
   Copy,
   Check,
-  Download,
-  AlertTriangle,
-  ArrowRight,
   ExternalLink,
+  MessageSquare,
+  LayoutGrid,
+  List,
+  Columns,
+  Star,
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
+import { GlassCard } from '../components/common/GlassCard';
+import { AssetReviewModal } from '../components/common/AssetReviewModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { historyService } from '../services/historyService';
 
-export const HistoryPage = () => {
+export const HistoryPage = ({ initialTab = 'all' }) => {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [history, setHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list' | 'masonry'
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [reviewAsset, setReviewAsset] = useState(null);
 
-  // Deletion confirm modal state
   const [itemToDelete, setItemToDelete] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
 
-  // Debounced search logic
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchHistory();
-    }, 300);
+    }, 250);
 
     return () => clearTimeout(handler);
-  }, [search, activeTab]);
+  }, [search, activeTab, sortBy]);
 
   const fetchHistory = async () => {
     setLoading(true);
     try {
+      const isFav = activeTab === 'favorites';
       const res = await historyService.getHistory({
-        tool: activeTab,
+        tool: isFav ? undefined : activeTab === 'all' ? undefined : activeTab,
+        favorites: isFav,
         search: search.trim(),
-        limit: 50,
+        limit: 100,
       });
       if (res.success && res.data) {
-        setHistory(res.data.history || []);
+        let items = res.data.history || [];
+        if (sortBy === 'oldest') {
+          items = [...items].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        } else {
+          items = [...items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+        setHistory(items);
       }
     } catch (err) {
       console.warn('History fetch error:', err);
@@ -77,37 +92,43 @@ export const HistoryPage = () => {
         setSelectedItem(null);
       }
       setItemToDelete(null);
-      showToast(t('toastHistoryDeleted'), 'info');
-    } catch (err) {
-      showToast(t('toastErrorGeneric'), 'error');
+      showToast('Asset deleted from library', 'info');
+    } catch {
+      showToast('Failed to delete asset', 'error');
     }
   };
 
-  const confirmClearAll = async () => {
+  const toggleFavorite = async (id) => {
     try {
-      await historyService.clearHistory();
-      setHistory([]);
-      setSelectedItem(null);
-      setShowClearModal(false);
-      showToast(t('toastHistoryCleared'), 'info');
-    } catch (err) {
-      showToast(t('toastErrorGeneric'), 'error');
+      const res = await historyService.toggleFavorite(id);
+      if (res.success) {
+        setHistory((prev) =>
+          prev.map((item) =>
+            (item._id || item.id) === id ? { ...item, isFavorite: !item.isFavorite } : item
+          )
+        );
+        showToast(res.message || 'Favorite status updated', 'info');
+      }
+    } catch {
+      showToast('Could not update favorite status', 'error');
     }
   };
 
   const tabs = [
-    { id: 'all', label: t('filterAll'), icon: Sparkles },
-    { id: 'article', label: t('filterArticle'), icon: FileText },
-    { id: 'title', label: t('filterTitle'), icon: Heading },
-    { id: 'image', label: t('filterImage'), icon: ImageIcon },
-    { id: 'background-removal', label: t('filterBackground'), icon: Layers },
+    { id: 'all', label: 'All Studio Assets', icon: Sparkles },
+    { id: 'article', label: 'Articles', icon: FileText },
+    { id: 'title', label: 'Headlines & Titles', icon: Heading },
+    { id: 'image', label: 'FLUX Visuals', icon: ImageIcon },
+    { id: 'social', label: 'Social Content', icon: Sparkles },
+    { id: 'background-removal', label: 'Background Isolations', icon: Layers },
+    { id: 'favorites', label: 'Favorites', icon: Star },
   ];
 
   const getToolIcon = (tool) => {
     switch (tool) {
       case 'article': return <FileText className="w-4 h-4 text-indigo-500" />;
       case 'title': return <Heading className="w-4 h-4 text-purple-500" />;
-      case 'image': return <ImageIcon className="w-4 h-4 text-amber-500" />;
+      case 'image': return <ImageIcon className="w-4 h-4 text-pink-500" />;
       case 'background-removal': return <Layers className="w-4 h-4 text-emerald-500" />;
       default: return <Sparkles className="w-4 h-4 text-slate-500" />;
     }
@@ -133,30 +154,28 @@ export const HistoryPage = () => {
 
   const handleOpenInTool = (item) => {
     if (item.tool === 'article') {
-      navigate('/tools/article', {
+      navigate('/article', {
         state: {
           topic: getPromptText(item.prompt),
           result: item.result,
         },
       });
     } else if (item.tool === 'title') {
-      navigate('/tools/titles', {
+      navigate('/titles', {
         state: {
           topic: getPromptText(item.prompt),
           result: item.result,
         },
       });
     } else if (item.tool === 'image') {
-      navigate('/tools/image', {
+      navigate('/image', {
         state: {
           prompt: getPromptText(item.prompt),
-          style: item.prompt?.style || 'Realistic',
-          aspectRatio: item.prompt?.aspectRatio || '1:1',
           result: item.result,
         },
       });
     } else if (item.tool === 'background-removal') {
-      navigate('/tools/background-remove');
+      navigate('/background-remover');
     }
   };
 
@@ -169,34 +188,74 @@ export const HistoryPage = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200 pb-16">
+      {/* Review Comments Modal */}
+      {reviewAsset && (
+        <AssetReviewModal
+          isOpen={!!reviewAsset}
+          onClose={() => setReviewAsset(null)}
+          assetType={reviewAsset.tool}
+          assetId={reviewAsset._id || reviewAsset.id}
+          assetTitle={getPromptText(reviewAsset.prompt)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-['Outfit']">
-            {t('historyTitle')}
-          </h2>
+          <div className="flex items-center space-x-2">
+            <span className="text-xl">📚</span>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white font-['Outfit']">
+              Creative Library 2.0
+            </h2>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {t('historySubtitle')}
+            Centralized intelligent repository for articles, FLUX visuals, campaigns, and review comments.
           </p>
         </div>
 
-        {history.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            icon={Trash2}
-            onClick={() => setShowClearModal(true)}
-          >
-            {t('clearHistoryBtn')}
-          </Button>
-        )}
+        {/* View Switchers */}
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-lg ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}
+              title="Grid View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-lg ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}
+              title="List View"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('masonry')}
+              className={`p-1.5 rounded-lg ${viewMode === 'masonry' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}
+              title="Masonry View"
+            >
+              <Columns className="w-4 h-4" />
+            </button>
+          </div>
+
+          {history.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={Trash2}
+              onClick={() => setShowClearModal(true)}
+            >
+              Clear Library
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabs & Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Tool Filter Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -204,9 +263,9 @@ export const HistoryPage = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+                    ? 'bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/20'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
@@ -217,66 +276,125 @@ export const HistoryPage = () => {
           })}
         </div>
 
-        {/* Search Input */}
-        <div className="relative min-w-[240px]">
+        <div className="relative min-w-[260px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('searchHistoryPlaceholder')}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs"
+            placeholder="Search assets, prompts, or topics..."
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
           />
         </div>
       </div>
 
-      {/* Content List */}
+      {/* Content Rendering */}
       {loading ? (
-        <div className="app-card p-12 text-center text-xs text-slate-400">
-          Loading library assets...
+        <div className="p-16 text-center text-xs text-slate-400 animate-pulse">
+          Indexing and loading creative assets...
         </div>
       ) : history.length === 0 ? (
         <EmptyState
           icon={HistoryIcon}
-          title={t('noHistoryTitle')}
-          description={t('noHistoryDesc')}
-          actionLabel="Create an Article"
-          onAction={() => navigate('/tools/article')}
+          title="No assets found"
+          description="Synthesize your first campaign, article, or FLUX visual to build your library."
+          actionLabel="Open Campaign Builder"
+          onAction={() => navigate('/campaign-builder')}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          className={
+            viewMode === 'list'
+              ? 'space-y-3'
+              : viewMode === 'masonry'
+              ? 'columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4'
+              : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+          }
+        >
           {history.map((item) => {
             const imagePreview = getItemImage(item);
             const promptText = getPromptText(item.prompt);
+            const isFav = favorites[item._id || item.id];
+
+            if (viewMode === 'list') {
+              return (
+                <GlassCard
+                  key={item._id || item.id}
+                  className="p-4 flex items-center justify-between gap-4 hover:border-indigo-500/40 transition-all group"
+                >
+                  <div className="flex items-center space-x-3.5 truncate">
+                    <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0">
+                      {getToolIcon(item.tool)}
+                    </div>
+                    <div className="truncate">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                        "{promptText}"
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        {item.tool.toUpperCase()} • {new Date(item.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <button
+                      onClick={() => toggleFavorite(item._id || item.id)}
+                      className={`p-1.5 rounded-lg ${isFav ? 'text-amber-400' : 'text-slate-400 hover:text-slate-200'}`}
+                    >
+                      <Star className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setReviewAsset(item)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400"
+                      title="Review & Comments"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                    <Button size="xs" onClick={() => handleOpenInTool(item)}>
+                      Open →
+                    </Button>
+                  </div>
+                </GlassCard>
+              );
+            }
 
             return (
-              <div
+              <GlassCard
                 key={item._id || item.id}
-                className="app-card rounded-xl overflow-hidden p-4 flex flex-col justify-between space-y-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all group"
+                className="p-4 flex flex-col justify-between space-y-3 hover:border-indigo-500/40 transition-all group break-inside-avoid"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                      <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
                         {getToolIcon(item.tool)}
                       </div>
-                      <span className="text-xs font-semibold capitalize text-slate-800 dark:text-slate-200">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                         {item.tool.replace('-', ' ')}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => handleOpenInTool(item)}
-                        className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded transition-colors"
-                        title="Open in Tool"
+                        onClick={() => toggleFavorite(item._id || item.id)}
+                        className={`p-1 rounded transition-colors ${
+                          isFav ? 'text-amber-400' : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                        title="Star Asset"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <Star className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setReviewAsset(item)}
+                        className="p-1 text-slate-400 hover:text-indigo-400 rounded transition-colors"
+                        title="Review Comments"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setItemToDelete(item._id || item.id)}
                         className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
-                        title="Delete from history"
+                        title="Delete asset"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -286,18 +404,18 @@ export const HistoryPage = () => {
                   {imagePreview ? (
                     <div
                       onClick={() => setSelectedItem(item)}
-                      className="h-32 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer flex items-center justify-center"
+                      className="h-36 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer flex items-center justify-center"
                     >
                       <img
                         src={imagePreview}
                         alt={promptText}
-                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-200"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
                     </div>
                   ) : (
                     <div
                       onClick={() => setSelectedItem(item)}
-                      className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 cursor-pointer h-24 overflow-hidden text-xs text-slate-600 dark:text-slate-400 font-mono text-[11px]"
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/80 cursor-pointer h-24 overflow-hidden text-xs text-slate-600 dark:text-slate-400 font-mono text-[11px]"
                     >
                       {typeof item.result === 'string'
                         ? item.result.slice(0, 150)
@@ -307,7 +425,7 @@ export const HistoryPage = () => {
                   )}
 
                   <div>
-                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">
                       "{promptText}"
                     </p>
                   </div>
@@ -322,20 +440,20 @@ export const HistoryPage = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleOpenInTool(item)}
-                      className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline flex items-center gap-1 text-[11px]"
+                      className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1 text-[11px]"
                     >
-                      <span>Open</span>
-                      <ArrowRight className="w-3 h-3" />
+                      <span>Launch Tool</span>
+                      <ExternalLink className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => setSelectedItem(item)}
                       className="text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium"
                     >
-                      View
+                      Inspect
                     </button>
                   </div>
                 </div>
-              </div>
+              </GlassCard>
             );
           })}
         </div>
@@ -344,52 +462,52 @@ export const HistoryPage = () => {
       {/* Item Detail Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="app-card w-full max-w-2xl max-h-[85vh] p-6 space-y-4 shadow-2xl flex flex-col justify-between overflow-hidden">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] p-6 space-y-4 shadow-2xl flex flex-col justify-between overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 {getToolIcon(selectedItem.tool)}
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Outfit'] capitalize">
-                  {selectedItem.tool.replace('-', ' ')} Asset
+                <h3 className="text-sm font-bold text-slate-100 capitalize">
+                  {selectedItem.tool.replace('-', ' ')} Asset Inspector
                 </h3>
               </div>
 
               <button
                 onClick={() => setSelectedItem(null)}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="text-slate-400 hover:text-white text-lg"
               >
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4 text-xs pr-1">
+            <div className="flex-1 overflow-y-auto space-y-4 text-xs pr-1 custom-scrollbar">
               <div>
-                <label className="font-semibold text-slate-500 block mb-1">
+                <label className="font-semibold text-slate-400 block mb-1">
                   Parameters & Prompt:
                 </label>
-                <pre className="p-2.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-mono text-[11px] overflow-x-auto">
+                <pre className="p-2.5 rounded-xl bg-slate-950 text-slate-300 font-mono text-[11px] overflow-x-auto border border-slate-800">
                   {JSON.stringify(selectedItem.prompt, null, 2)}
                 </pre>
               </div>
 
               {getItemImage(selectedItem) ? (
                 <div>
-                  <label className="font-semibold text-slate-500 block mb-1">
+                  <label className="font-semibold text-slate-400 block mb-1">
                     Visual Asset:
                   </label>
-                  <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden">
+                  <div className="p-3 rounded-xl bg-slate-950 flex items-center justify-center overflow-hidden border border-slate-800">
                     <img
                       src={getItemImage(selectedItem)}
                       alt="visual output"
-                      className="max-h-64 rounded object-contain"
+                      className="max-h-64 rounded-lg object-contain"
                     />
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className="font-semibold text-slate-500 block mb-1">
+                  <label className="font-semibold text-slate-400 block mb-1">
                     Generated Content:
                   </label>
-                  <div className="p-3.5 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 max-h-60 overflow-y-auto font-sans whitespace-pre-wrap leading-relaxed">
+                  <div className="p-3.5 rounded-xl bg-slate-950 text-slate-200 max-h-60 overflow-y-auto font-sans whitespace-pre-wrap leading-relaxed border border-slate-800">
                     {typeof selectedItem.result === 'string'
                       ? selectedItem.result
                       : selectedItem.result?.content || JSON.stringify(selectedItem.result, null, 2)}
@@ -398,7 +516,7 @@ export const HistoryPage = () => {
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -436,15 +554,10 @@ export const HistoryPage = () => {
       {/* Delete Item Confirmation Modal */}
       {itemToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="app-card w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div className="text-center space-y-1">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Outfit']">
-                Delete History Item?
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div className="text-center space-y-2">
+              <h3 className="text-base font-bold text-slate-100">Delete Asset?</h3>
+              <p className="text-xs text-slate-400">
                 This creation record will be permanently deleted from your library.
               </p>
             </div>
@@ -464,43 +577,6 @@ export const HistoryPage = () => {
                 onClick={confirmDelete}
               >
                 Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Clear All Confirmation Modal */}
-      {showClearModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className="app-card w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto">
-              <Trash2 className="w-5 h-5" />
-            </div>
-            <div className="text-center space-y-1">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Outfit']">
-                Clear All History?
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Are you sure you want to clear your entire creation history? This action cannot be undone.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full"
-                onClick={() => setShowClearModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                className="w-full bg-red-600 text-white hover:bg-red-700"
-                onClick={confirmClearAll}
-              >
-                Clear Everything
               </Button>
             </div>
           </div>

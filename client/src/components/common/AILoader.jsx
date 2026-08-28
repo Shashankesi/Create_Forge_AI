@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PixoraMark } from '../brand/PixoraMark';
+import { CreateForgeMark } from '../brand/CreateForgeMark';
 
 export const AILoader = ({
   messages = [
@@ -27,7 +27,7 @@ export const AILoader = ({
     >
       <div className="relative flex items-center justify-center">
         <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/40 flex items-center justify-center">
-          <PixoraMark size={32} animate={true} />
+          <CreateForgeMark size={32} animate={true} />
         </div>
       </div>
 
