@@ -34,8 +34,13 @@ api.interceptors.response.use(
       'An unexpected error occurred. Please try again.';
 
     if (error.response?.status === 401) {
-      const pathname = window.location.pathname;
+      const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+      const requestUrl = error.config?.url || '';
+
+      // Only clear storage if this is a protected API failure and not during active auth endpoints
       if (
+        !requestUrl.includes('/auth/login') &&
+        !requestUrl.includes('/auth/register') &&
         !pathname.includes('/login') &&
         !pathname.includes('/register') &&
         pathname !== '/'
@@ -43,6 +48,7 @@ api.interceptors.response.use(
         localStorage.removeItem('createforge_token');
         localStorage.removeItem('createforge_user');
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
     }
 

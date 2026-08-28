@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -24,36 +24,52 @@ export const AuthProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(true);
 
+  // Sequence ref prevents stale in-flight /auth/me requests from clearing newer logins
+  const authSeqRef = useRef(0);
+
   // Restore authenticated session from backend on application mount
   useEffect(() => {
     let isMounted = true;
+    const currentSeq = ++authSeqRef.current;
 
     const restoreSession = async () => {
+      const storedToken =
+        localStorage.getItem('createforge_token') ||
+        localStorage.getItem('token');
+
       try {
         const res = await authService.getMe();
+        
+        // If a login/register occurred while getMe was in flight, abort
+        if (!isMounted || currentSeq !== authSeqRef.current) return;
+
         const authenticatedUser = res.user || res.data?.user;
 
-        if (isMounted && res.success && authenticatedUser) {
+        if (res.success && authenticatedUser) {
           setUser(authenticatedUser);
           localStorage.setItem('createforge_user', JSON.stringify(authenticatedUser));
-          if (res.token || res.data?.token) {
-            const freshToken = res.token || res.data?.token;
+          const freshToken = res.token || res.data?.token || storedToken;
+          if (freshToken) {
             setToken(freshToken);
             localStorage.setItem('createforge_token', freshToken);
             localStorage.setItem('token', freshToken);
           }
+        } else if (!storedToken) {
+          setUser(null);
+          setToken(null);
         }
       } catch (err) {
-        // If /me returns 401, session token is expired or invalid
-        if (isMounted) {
+        // If /me returns 401 and no newer login took place, clear local cache
+        if (isMounted && currentSeq === authSeqRef.current) {
           setUser(null);
           setToken(null);
           localStorage.removeItem('createforge_token');
           localStorage.removeItem('createforge_user');
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
         }
       } finally {
-        if (isMounted) {
+        if (isMounted && currentSeq === authSeqRef.current) {
           setLoading(false);
         }
       }
@@ -67,35 +83,43 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials) => {
+    // Invalidate any pending initial session restoration
+    const currentSeq = ++authSeqRef.current;
+
     const res = await authService.login(credentials);
     const loggedInUser = res.user || res.data?.user;
     const authToken = res.token || res.data?.token;
 
     if (res.success && loggedInUser) {
-      setUser(loggedInUser);
       if (authToken) {
-        setToken(authToken);
         localStorage.setItem('createforge_token', authToken);
         localStorage.setItem('token', authToken);
+        setToken(authToken);
       }
       localStorage.setItem('createforge_user', JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
+      setLoading(false);
     }
     return res;
   };
 
   const register = async (userData) => {
+    // Invalidate any pending initial session restoration
+    const currentSeq = ++authSeqRef.current;
+
     const res = await authService.register(userData);
     const registeredUser = res.user || res.data?.user;
     const authToken = res.token || res.data?.token;
 
     if (res.success && registeredUser) {
-      setUser(registeredUser);
       if (authToken) {
-        setToken(authToken);
         localStorage.setItem('createforge_token', authToken);
         localStorage.setItem('token', authToken);
+        setToken(authToken);
       }
       localStorage.setItem('createforge_user', JSON.stringify(registeredUser));
+      setUser(registeredUser);
+      setLoading(false);
     }
     return res;
   };
@@ -119,6 +143,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    ++authSeqRef.current;
     try {
       await authService.logout();
     } catch {
@@ -129,10 +154,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('createforge_token');
       localStorage.removeItem('createforge_user');
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('cf_active_project_id');
+      setLoading(false);
     }
   };
 
   const isAuthenticated = Boolean(user);
+  const isAdmin = Boolean(user?.role === 'admin');
 
   return (
     <AuthContext.Provider
@@ -142,6 +171,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isInitializing: loading,
         isAuthenticated,
+        isAdmin,
         login,
         register,
         logout,

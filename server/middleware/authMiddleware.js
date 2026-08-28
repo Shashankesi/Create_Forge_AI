@@ -26,14 +26,7 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const secret = process.env.JWT_SECRET || 'createforge_ai_super_secret_jwt_key_prod_2026_auth';
-    let decoded;
-
-    try {
-      decoded = jwt.verify(token, secret);
-    } catch {
-      // Legacy secret fallback for graceful session continuity
-      decoded = jwt.verify(token, 'pixora_ai_super_secret_jwt_key_2026_dev_mode');
-    }
+    const decoded = jwt.verify(token, secret);
 
     const userId = decoded.id || decoded._id;
     const user = await User.findById(userId).select('-password');

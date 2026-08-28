@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { CreateForgeMark } from '../components/brand/CreateForgeMark';
 import { Input } from '../components/common/Input';
@@ -15,30 +15,59 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  // Safely resolve the intended redirection target
+  const rawFrom =
+    location.state?.from?.pathname ||
+    (typeof location.state?.from === 'string' ? location.state.from : null);
+
+  const targetPath =
+    rawFrom &&
+    rawFrom.startsWith('/') &&
+    !rawFrom.startsWith('/login') &&
+    !rawFrom.startsWith('/register') &&
+    !rawFrom.startsWith('/404')
+      ? rawFrom
+      : '/dashboard';
+
+  // Reactively redirect to the dashboard if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(targetPath, { replace: true });
+    }
+  }, [isAuthenticated, navigate, targetPath]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
 
-    if (!email.trim() || !password) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
       setError('Please provide your email and password.');
       return;
     }
 
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
-      showToast('Signed in successfully.', 'success');
-      navigate(from, { replace: true });
+      const res = await login({ email: cleanEmail, password });
+      if (res?.success) {
+        showToast('Signed in successfully.', 'success');
+        navigate(targetPath, { replace: true });
+      } else {
+        setError(res?.message || 'Invalid email or password. Please try again.');
+      }
     } catch (err) {
-      setError(err?.customMessage || 'Invalid email or password. Please try again.');
+      setError(
+        err?.customMessage ||
+          err?.response?.data?.message ||
+          'Invalid email or password. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

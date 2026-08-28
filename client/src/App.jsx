@@ -42,7 +42,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ defa
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
-// Phase 3 Intelligence & Multimodal Workspaces
+// Advanced Campaign & Multimodal Workspaces
 const CampaignBuilderPage = lazy(() => import('./pages/CampaignBuilderPage').then((m) => ({ default: m.CampaignBuilderPage })));
 const CreativeDirectionPage = lazy(() => import('./pages/CreativeDirectionPage').then((m) => ({ default: m.CreativeDirectionPage })));
 const MoodboardPage = lazy(() => import('./pages/MoodboardPage').then((m) => ({ default: m.MoodboardPage })));
@@ -144,7 +144,7 @@ export const App = () => {
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/settings" element={<SettingsPage />} />
 
-                        {/* Phase 3 Autonomous Campaign & Multimodal Studios */}
+                        {/* Autonomous Campaign & Multimodal Studios */}
                         <Route path="/campaign-builder" element={<CampaignBuilderPage />} />
                         <Route path="/creative-direction" element={<CreativeDirectionPage />} />
                         <Route path="/moodboard" element={<MoodboardPage />} />

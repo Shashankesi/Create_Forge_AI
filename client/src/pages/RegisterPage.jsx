@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreateForgeMark } from '../components/brand/CreateForgeMark';
 import { Input } from '../components/common/Input';
@@ -17,14 +17,35 @@ export const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
+  // Reactively redirect to the dashboard if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (!cleanName) {
+      setError('Please provide your name.');
+      return;
+    }
+
+    if (!cleanEmail) {
+      setError('Please provide a valid email address.');
+      return;
+    }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
@@ -38,15 +59,24 @@ export const RegisterPage = () => {
 
     setLoading(true);
     try {
-      await register({
-        name: name.trim(),
-        email: email.trim(),
+      const res = await register({
+        name: cleanName,
+        email: cleanEmail,
         password,
       });
-      showToast('Account created successfully.', 'success');
-      navigate('/dashboard', { replace: true });
+
+      if (res?.success) {
+        showToast('Account created successfully.', 'success');
+        navigate('/dashboard', { replace: true });
+      } else {
+        setError(res?.message || 'Failed to create account. Please try again.');
+      }
     } catch (err) {
-      setError(err?.customMessage || 'Failed to create account. Please try again.');
+      setError(
+        err?.customMessage ||
+          err?.response?.data?.message ||
+          'Failed to create account. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
