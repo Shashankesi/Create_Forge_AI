@@ -1,7 +1,27 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // Check if running on production hosted domains (Render or custom domain)
+    if (
+      hostname.includes('onrender.com') ||
+      hostname.includes('createforgeai.tech') ||
+      (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.'))
+    ) {
+      return 'https://create-forge-ai.onrender.com/api';
+    }
+  }
+  
+  return '/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: getBaseURL(),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
