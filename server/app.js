@@ -78,6 +78,12 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 // General Rate Limiting
 app.use('/api', generalLimiter);
 
+// Root Redirect to Frontend
+app.get('/', (req, res) => {
+  const frontendUrl = process.env.CLIENT_URL || 'https://create-forge-ai-1.onrender.com';
+  res.redirect(frontendUrl);
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
