@@ -15,16 +15,27 @@ const {
 /**
  * Normalizes provider / runtime AI errors into friendly user messages
  */
-const normalizeAIError = (error) => {
+const normalizeAIError = (error, serviceType = 'general') => {
   const rawMsg = error?.message || '';
   const status = error?.statusCode || error?.status || error?.response?.status;
   const code = error?.code;
+
+  const serviceLabel =
+    serviceType === 'image'
+      ? 'Image generation'
+      : serviceType === 'article'
+      ? 'Article generation'
+      : serviceType === 'social'
+      ? 'Social content pack generation'
+      : serviceType === 'assistant'
+      ? 'AI Studio Assistant'
+      : 'AI generation';
 
   if (status === 400 || code === 'INVALID_PARAMETERS' || code === 'INVALID_PROMPT' || code === 'VALIDATION_ERROR') {
     return {
       status: 400,
       code: 'INVALID_PARAMETERS',
-      message: error?.message || 'Invalid image generation parameters. Please check your prompt and options.',
+      message: error?.message || `Invalid ${serviceLabel.toLowerCase()} parameters. Please check your inputs.`,
       retryable: false,
     };
   }
@@ -33,7 +44,7 @@ const normalizeAIError = (error) => {
     return {
       status: 401,
       code: 'AUTH_ERROR',
-      message: 'Image generation service authentication failed. Please check the server configuration.',
+      message: `${serviceLabel} service authentication failed. Please verify server configuration.`,
       retryable: false,
     };
   }
@@ -42,7 +53,7 @@ const normalizeAIError = (error) => {
     return {
       status: 402,
       code: 'INSUFFICIENT_CREDITS',
-      message: 'Image generation credits are currently unavailable.',
+      message: `${serviceLabel} credits are currently unavailable.`,
       retryable: true,
     };
   }
@@ -51,7 +62,7 @@ const normalizeAIError = (error) => {
     return {
       status: 403,
       code: 'MODEL_FORBIDDEN',
-      message: 'The selected image model is not available for this API key.',
+      message: `The selected AI model is not accessible for this configuration.`,
       retryable: false,
     };
   }
@@ -60,7 +71,7 @@ const normalizeAIError = (error) => {
     return {
       status: 429,
       code: 'RATE_LIMITED',
-      message: 'Image generation is temporarily busy. Please try again shortly.',
+      message: `${serviceLabel} is temporarily rate-limited. Please retry shortly.`,
       retryable: true,
     };
   }
@@ -69,7 +80,7 @@ const normalizeAIError = (error) => {
     return {
       status: 504,
       code: 'AI_TIMEOUT',
-      message: 'Image generation timed out. Please try again.',
+      message: `${serviceLabel} timed out. Please try again.`,
       retryable: true,
     };
   }
@@ -77,7 +88,7 @@ const normalizeAIError = (error) => {
   return {
     status: status && status >= 400 && status < 600 ? status : 500,
     code: code || 'AI_GENERATION_FAILED',
-    message: error?.message || 'The image service is temporarily unavailable.',
+    message: error?.message || `${serviceLabel} service is temporarily unavailable.`,
     retryable: true,
   };
 };
@@ -208,7 +219,8 @@ const generateArticle = async (req, res, next) => {
       },
     });
   } catch (error) {
-    const normalized = normalizeAIError(error);
+    const normalized = normalizeAIError(error, 'article');
+    console.error(`⚠️ [AI Error] route=/api/ai/article status=${normalized.status} code=${normalized.code} error="${error?.message || normalized.message}"`);
     return res.status(normalized.status || 500).json({
       success: false,
       error: normalized,
@@ -802,7 +814,8 @@ Provide concise, highly actionable, expert creative responses. When asked to imp
       },
     });
   } catch (error) {
-    const normalized = normalizeAIError(error);
+    const normalized = normalizeAIError(error, 'assistant');
+    console.error(`⚠️ [AI Error] route=/api/ai/assistant status=${normalized.status} code=${normalized.code} error="${error?.message || normalized.message}"`);
     return res.status(normalized.status || 500).json({
       success: false,
       error: normalized,
@@ -853,7 +866,8 @@ const generateSocialPack = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
-    const normalized = normalizeAIError(error);
+    const normalized = normalizeAIError(error, 'social');
+    console.error(`⚠️ [AI Error] route=/api/ai/social-pack status=${normalized.status} code=${normalized.code} error="${error?.message || normalized.message}"`);
     return res.status(normalized.status || 500).json({
       success: false,
       error: normalized,

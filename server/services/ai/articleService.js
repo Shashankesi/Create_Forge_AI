@@ -237,6 +237,17 @@ Generate the complete structured article now.`;
     }
 
     const normalizedSections = rawSections.map((sec, idx) => {
+      if (!sec || typeof sec !== 'object') {
+        const text = typeof sec === 'string' ? sec : `Section ${idx + 1} insights and analysis.`;
+        mdChunks.push(`\n## Section ${idx + 1}\n${text}\n`);
+        return {
+          heading: `Section ${idx + 1}`,
+          content: text,
+          examples: [],
+          keyTakeaway: '',
+        };
+      }
+
       const heading = sec.heading || sec.title || `Section ${idx + 1}`;
       const content = sec.content || sec.body || '';
       const examples = Array.isArray(sec.examples) ? sec.examples : sec.examples ? [sec.examples] : [];

@@ -151,6 +151,68 @@ export const SocialPackPage = () => {
     });
   };
 
+  const getLinkedinContent = (result) => {
+    if (!result) return '';
+    const li = result.linkedin;
+    if (typeof li === 'string') return li;
+    if (li && typeof li === 'object') {
+      if (typeof li.fullPost === 'string' && li.fullPost.trim()) return li.fullPost;
+      if (typeof li.post === 'string' && li.post.trim()) return li.post;
+      if (typeof li.content === 'string' && li.content.trim()) return li.content;
+      if (Array.isArray(li.hooks) && li.hooks.length > 0) {
+        return `${li.hooks.join('\n\n')}\n\n${li.fullPost || ''}`.trim();
+      }
+    }
+    return 'LinkedIn thought leadership content.';
+  };
+
+  const getTwitterContent = (result) => {
+    if (!result) return '';
+    const tw = result.twitter;
+    if (typeof tw === 'string') return tw;
+    if (tw && typeof tw === 'object') {
+      if (Array.isArray(tw.thread) && tw.thread.length > 0) {
+        return tw.thread.map((t) => (typeof t === 'string' ? t : t?.text || JSON.stringify(t))).join('\n\n---\n\n');
+      }
+      if (Array.isArray(tw.standalonePosts) && tw.standalonePosts.length > 0) {
+        return tw.standalonePosts.map((p) => (typeof p === 'string' ? p : p?.text || JSON.stringify(p))).join('\n\n');
+      }
+      if (typeof tw.post === 'string') return tw.post;
+      if (typeof tw.content === 'string') return tw.content;
+    }
+    return 'X post copy.';
+  };
+
+  const getInstagramContent = (result) => {
+    if (!result) return '';
+    const ig = result.instagram;
+    if (typeof ig === 'string') return ig;
+    if (ig && typeof ig === 'object') {
+      if (typeof ig.caption === 'string' && ig.caption.trim()) return ig.caption;
+      if (typeof ig.post === 'string' && ig.post.trim()) return ig.post;
+      if (typeof ig.content === 'string' && ig.content.trim()) return ig.content;
+      if (Array.isArray(ig.carouselSlides) && ig.carouselSlides.length > 0) {
+        return ig.carouselSlides.map((s, i) => `Slide ${i + 1}: ${s.heading || ''}\n${s.body || ''}`).join('\n\n');
+      }
+    }
+    return 'Instagram carousel caption and hashtags.';
+  };
+
+  const getYoutubeContent = (result) => {
+    if (!result) return '';
+    const yt = result.youtube;
+    if (typeof yt === 'string') return yt;
+    if (yt && typeof yt === 'object') {
+      if (typeof yt.description === 'string' && yt.description.trim()) {
+        const titles = Array.isArray(yt.titleOptions) ? `Title Options:\n${yt.titleOptions.map((t, idx) => `${idx + 1}. ${t}`).join('\n')}\n\n` : '';
+        return `${titles}${yt.description}`.trim();
+      }
+      if (typeof yt.script === 'string') return yt.script;
+      if (typeof yt.content === 'string') return yt.content;
+    }
+    return 'YouTube title, description and chapter breakdown.';
+  };
+
   return (
     <ToolLayout
       title="Social Content"
@@ -164,7 +226,7 @@ export const SocialPackPage = () => {
             <GlassCard className="p-5 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                  Social Campaign Setup
+                  Campaign Controls
                 </span>
                 {activeProject && (
                   <button
@@ -352,7 +414,7 @@ export const SocialPackPage = () => {
                         <Button
                           size="xs"
                           variant="outline"
-                          onClick={() => handleCopy(packResult.linkedin?.post || packResult.linkedin, 'li')}
+                          onClick={() => handleCopy(getLinkedinContent(packResult), 'li')}
                         >
                           {copiedKey === 'li' ? <Check className="w-3 h-3 text-emerald-500 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                           Copy Post
@@ -360,7 +422,7 @@ export const SocialPackPage = () => {
                       </div>
 
                       <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-sans leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
-                        {packResult.linkedin?.post || packResult.linkedin || 'LinkedIn thought leadership content.'}
+                        {getLinkedinContent(packResult)}
                       </div>
                     </div>
                   )}
@@ -376,7 +438,7 @@ export const SocialPackPage = () => {
                         <Button
                           size="xs"
                           variant="outline"
-                          onClick={() => handleCopy(packResult.twitter?.thread ? packResult.twitter.thread.join('\n\n---\n\n') : packResult.twitter, 'tw')}
+                          onClick={() => handleCopy(getTwitterContent(packResult), 'tw')}
                         >
                           {copiedKey === 'tw' ? <Check className="w-3 h-3 text-emerald-500 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                           Copy Thread
@@ -384,16 +446,21 @@ export const SocialPackPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        {Array.isArray(packResult.twitter?.thread) ? (
-                          packResult.twitter.thread.map((tweet, i) => (
-                            <div key={i} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs">
-                              <span className="font-mono text-[10px] text-slate-400 block mb-1">Tweet {i + 1}/{packResult.twitter.thread.length}</span>
-                              <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{tweet}</p>
-                            </div>
-                          ))
+                        {Array.isArray(packResult.twitter?.thread) && packResult.twitter.thread.length > 0 ? (
+                          packResult.twitter.thread.map((tweet, i) => {
+                            const tweetText = typeof tweet === 'string' ? tweet : tweet?.text || tweet?.tweet || JSON.stringify(tweet);
+                            return (
+                              <div key={i} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs">
+                                <span className="font-mono text-[10px] text-slate-400 block mb-1">
+                                  Tweet {i + 1}/{packResult.twitter.thread.length}
+                                </span>
+                                <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{tweetText}</p>
+                              </div>
+                            );
+                          })
                         ) : (
                           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs whitespace-pre-wrap">
-                            {packResult.twitter || 'X post copy.'}
+                            {getTwitterContent(packResult)}
                           </div>
                         )}
                       </div>
@@ -411,7 +478,7 @@ export const SocialPackPage = () => {
                         <Button
                           size="xs"
                           variant="outline"
-                          onClick={() => handleCopy(packResult.instagram?.caption || packResult.instagram, 'ig')}
+                          onClick={() => handleCopy(getInstagramContent(packResult), 'ig')}
                         >
                           {copiedKey === 'ig' ? <Check className="w-3 h-3 text-emerald-500 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                           Copy Caption
@@ -419,7 +486,7 @@ export const SocialPackPage = () => {
                       </div>
 
                       <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-sans leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
-                        {packResult.instagram?.caption || packResult.instagram || 'Instagram carousel caption and hashtags.'}
+                        {getInstagramContent(packResult)}
                       </div>
                     </div>
                   )}
@@ -435,7 +502,7 @@ export const SocialPackPage = () => {
                         <Button
                           size="xs"
                           variant="outline"
-                          onClick={() => handleCopy(packResult.youtube?.description || packResult.youtube, 'yt')}
+                          onClick={() => handleCopy(getYoutubeContent(packResult), 'yt')}
                         >
                           {copiedKey === 'yt' ? <Check className="w-3 h-3 text-emerald-500 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                           Copy Notes
@@ -443,7 +510,7 @@ export const SocialPackPage = () => {
                       </div>
 
                       <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 font-sans leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
-                        {packResult.youtube?.description || packResult.youtube || 'YouTube title, description and chapter breakdown.'}
+                        {getYoutubeContent(packResult)}
                       </div>
                     </div>
                   )}

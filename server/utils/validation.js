@@ -56,9 +56,30 @@ const validateArticleInput = (data) => {
     errors.push('Topic cannot exceed 500 characters');
   }
 
-  const validTones = ['Professional', 'Casual', 'Educational', 'Friendly', 'Technical', 'Persuasive', 'Engaging'];
-  if (tone && !validTones.includes(tone)) {
-    errors.push(`Tone must be one of: ${validTones.join(', ')}`);
+  const validTones = [
+    'Professional',
+    'Conversational',
+    'Technical',
+    'Persuasive',
+    'Educational',
+    'Casual',
+    'Friendly',
+    'Engaging',
+    'Authoritative',
+    'Direct',
+    'Empathetic',
+    'Bold',
+    'Creative',
+    'Humorous',
+  ];
+  // Support standard dropdown tones as well as custom Brand Kit voice guidelines
+  if (tone && typeof tone === 'string') {
+    const trimmedTone = tone.trim();
+    if (trimmedTone.length < 2 || trimmedTone.length > 100) {
+      errors.push('Tone must be between 2 and 100 characters');
+    }
+  } else if (tone && typeof tone !== 'string') {
+    errors.push('Tone must be a valid text string');
   }
 
   const validTypes = [
@@ -66,18 +87,31 @@ const validateArticleInput = (data) => {
     'Beginner Guide',
     'How-To',
     'Tutorial',
+    'Hands-on Tutorial',
     'Comparison',
     'Listicle',
+    'Opinion',
     'Case Study',
+    'Technical Deep Dive',
     'Thought Leadership',
+    'Deep Dive',
+    'General',
   ];
-  if (articleType && !validTypes.includes(articleType)) {
-    errors.push(`Article type must be one of: ${validTypes.join(', ')}`);
+  if (articleType && typeof articleType === 'string') {
+    const trimmedType = articleType.trim();
+    if (!validTypes.includes(trimmedType) && (trimmedType.length < 2 || trimmedType.length > 100)) {
+      errors.push(`Article type must be between 2 and 100 characters`);
+    }
+  } else if (articleType && typeof articleType !== 'string') {
+    errors.push('Article type must be a valid text string');
   }
 
   const validLengths = ['Short', 'Medium', 'Long'];
-  if (desiredLength && !validLengths.includes(desiredLength)) {
-    errors.push(`Desired length must be one of: ${validLengths.join(', ')}`);
+  if (desiredLength && typeof desiredLength === 'string') {
+    const trimmedLength = desiredLength.trim();
+    if (!validLengths.includes(trimmedLength) && (trimmedLength.length < 2 || trimmedLength.length > 50)) {
+      errors.push(`Desired length must be one of: ${validLengths.join(', ')}`);
+    }
   }
 
   return {

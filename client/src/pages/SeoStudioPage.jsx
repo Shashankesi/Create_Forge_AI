@@ -47,12 +47,17 @@ export const SeoStudioPage = () => {
     if (location.state?.initialText || location.state?.articleText) {
       setContentExcerpt(location.state.initialText || location.state.articleText);
       if (location.state.articleTitle) setTopic(location.state.articleTitle);
+      else if (location.state.topic) setTopic(location.state.topic);
       showToast('Loaded article draft into SEO Studio.', 'info');
-    } else if (activeProject?.items) {
-      const articleItem = activeProject.items.find((i) => i.assetType === 'article');
+    } else if (Array.isArray(activeProject?.items)) {
+      const articleItem = activeProject.items.find((i) => i && i.assetType === 'article');
       if (articleItem) {
-        setTopic(articleItem.title || activeProject.name);
-        setContentExcerpt(typeof articleItem.content === 'string' ? articleItem.content : articleItem.content?.content || '');
+        setTopic(articleItem.title || activeProject.name || '');
+        const excerpt =
+          typeof articleItem.content === 'string'
+            ? articleItem.content
+            : articleItem.content?.article || articleItem.content?.content || '';
+        setContentExcerpt(excerpt);
       }
     }
   }, [location.state, activeProject]);
@@ -106,16 +111,38 @@ Respond with valid structured JSON only:
       if (res.success && res.reply) {
         let clean = res.reply.trim();
         if (clean.startsWith('```json')) clean = clean.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
-        if (clean.startsWith('```')) clean = clean.replace(/^```\s*/i, '').replace(/\s*```$/, '');
-        const parsed = JSON.parse(clean);
-        setSeoResult(parsed);
-        showToast('SEO audit & optimization roadmap complete!', 'success');
+        else if (clean.startsWith('```')) clean = clean.replace(/^```\s*/i, '').replace(/\s*```$/, '');
+        
+        let parsed = null;
+        try {
+          parsed = JSON.parse(clean);
+        } catch (parseErr) {
+          const jsonMatch = clean.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try { parsed = JSON.parse(jsonMatch[0]); } catch (e) {}
+          }
+        }
+
+        if (parsed && typeof parsed === 'object') {
+          // Normalize subtopics to strings if objects returned
+          if (Array.isArray(parsed.missingSubtopics)) {
+            parsed.missingSubtopics = parsed.missingSubtopics.map((s) =>
+              typeof s === 'string' ? s : s?.topic || s?.subtopic || s?.title || JSON.stringify(s)
+            );
+          }
+          if (parsed.recommendedTitleUpgrade && typeof parsed.recommendedTitleUpgrade === 'object') {
+            parsed.recommendedTitleUpgrade = parsed.recommendedTitleUpgrade.title || parsed.recommendedTitleUpgrade.upgrade || String(parsed.recommendedTitleUpgrade);
+          }
+          setSeoResult(parsed);
+          showToast('SEO audit & optimization roadmap complete!', 'success');
+          return;
+        }
       }
     } catch (err) {
       // Fallback
       setSeoResult({
         seoScore: 90,
-        metaTitle: `${topic.trim() || 'Complete Guide'}: 2026 Strategy & Best Practices`,
+        metaTitle: `${topic.trim() || 'Complete Guide'}: Strategy & Best Practices`,
         metaDescription: `Master ${topic.trim() || 'this topic'} with proven frameworks, real-world case studies, and actionable techniques. Explore the complete guide.`,
         slug: (topic || 'article').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         primaryKeywords: [topic || 'core topic', `${topic || 'strategy'} guide`, 'best practices'],
@@ -278,13 +305,13 @@ Respond with valid structured JSON only:
 
                   <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-1">
                     <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
-                      {seoResult.metaTitle}
+                      {typeof seoResult.metaTitle === 'string' ? seoResult.metaTitle : seoResult.metaTitle?.title || topic || 'SEO Title'}
                     </p>
                     <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono">
-                      https://example.com/{seoResult.slug}
+                      https://example.com/{typeof seoResult.slug === 'string' ? seoResult.slug : 'article'}
                     </p>
                     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {seoResult.metaDescription}
+                      {typeof seoResult.metaDescription === 'string' ? seoResult.metaDescription : seoResult.metaDescription?.description || ''}
                     </p>
                   </div>
                 </GlassCard>
@@ -303,7 +330,7 @@ Respond with valid structured JSON only:
                           Title Optimization Opportunity
                         </span>
                         <p className="text-slate-800 dark:text-slate-200 font-medium">
-                          Suggested Upgrade: "{seoResult.recommendedTitleUpgrade}"
+                          Suggested Upgrade: "{typeof seoResult.recommendedTitleUpgrade === 'string' ? seoResult.recommendedTitleUpgrade : seoResult.recommendedTitleUpgrade?.title || String(seoResult.recommendedTitleUpgrade)}"
                         </p>
                         <p className="text-[10px] text-slate-500">Reason: Higher search volume density and stronger click intent.</p>
                       </div>
@@ -321,7 +348,7 @@ Respond with valid structured JSON only:
                   )}
 
                   {/* Recommendation 2: Subtopics to Cover */}
-                  {seoResult.missingSubtopics?.length > 0 && (
+                  {Array.isArray(seoResult.missingSubtopics) && seoResult.missingSubtopics.length > 0 && (
                     <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-1.5 text-xs">
                       <span className="font-bold text-amber-800 dark:text-amber-300 text-[11px] uppercase tracking-wide block">
                         Content Depth Gaps Detected
@@ -330,11 +357,14 @@ Respond with valid structured JSON only:
                         Consider expanding the following subtopics for competitive search coverage:
                       </p>
                       <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {seoResult.missingSubtopics.map((sub, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-amber-300 dark:border-amber-700 font-semibold text-[10px]">
-                            + {sub}
-                          </span>
-                        ))}
+                        {seoResult.missingSubtopics.map((sub, i) => {
+                          const subText = typeof sub === 'string' ? sub : sub?.topic || sub?.subtopic || sub?.title || sub?.name || JSON.stringify(sub);
+                          return (
+                            <span key={i} className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-amber-300 dark:border-amber-700 font-semibold text-[10px]">
+                              + {subText}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

@@ -308,10 +308,19 @@ export const ArticleGeneratorPage = () => {
           changesSummary: 'Initial AI Generated Draft',
         }).catch(() => {});
       } else {
-        setError(res.message || 'Article generation could not be completed. Please try again.');
+        const errorMsg = res?.error?.message || res?.message || 'Article generation could not be completed. Please check your inputs and try again.';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
       }
     } catch (err) {
-      setError('Article generation could not be completed. Please try again.');
+      const errorMsg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.customMessage ||
+        err?.message ||
+        'Article generation could not be completed. Please try again.';
+      setError(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
     }

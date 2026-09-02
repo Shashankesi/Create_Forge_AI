@@ -5,7 +5,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 export class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null, errorInfo: null, showDetails: false };
   }
 
   static getDerivedStateFromError(error) {
@@ -18,12 +18,18 @@ export class ErrorBoundary extends React.Component {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
-    window.location.reload();
+    this.setState({ hasError: false, error: null, errorInfo: null, showDetails: false });
+    if (this.props.onReset) {
+      this.props.onReset();
+    } else {
+      window.location.reload();
+    }
   };
 
   render() {
     if (this.state.hasError) {
+      const isDev = Boolean(import.meta.env?.DEV || (typeof window !== 'undefined' && window.location.hostname === 'localhost'));
+
       return (
         <div className="min-h-[400px] flex items-center justify-center p-6 animate-fadeIn">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-4 shadow-xl">
@@ -40,10 +46,23 @@ export class ErrorBoundary extends React.Component {
               </p>
             </div>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 text-left font-mono text-[11px] text-rose-500 overflow-x-auto border border-slate-200 dark:border-slate-800 max-h-32">
-                {this.state.error.toString()}
+            {(isDev || this.state.showDetails) && this.state.error && (
+              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 text-left font-mono text-[11px] text-rose-500 overflow-x-auto border border-slate-200 dark:border-slate-800 max-h-40">
+                <p className="font-bold mb-1">{this.state.error.toString()}</p>
+                {this.state.errorInfo?.componentStack && (
+                  <pre className="text-[10px] text-slate-500 whitespace-pre-wrap">{this.state.errorInfo.componentStack}</pre>
+                )}
               </div>
+            )}
+
+            {!isDev && !this.state.showDetails && (
+              <button
+                type="button"
+                onClick={() => this.setState({ showDetails: true })}
+                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline"
+              >
+                Show Diagnostic Details
+              </button>
             )}
 
             <div className="flex items-center justify-center gap-3 pt-2">
@@ -76,3 +95,5 @@ export class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+export default ErrorBoundary;

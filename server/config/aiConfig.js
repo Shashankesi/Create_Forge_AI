@@ -7,8 +7,10 @@
 
 const AI_CONFIG = {
   gemini: {
-    primaryModel: 'gemini-1.5-flash',
+    primaryModel: 'gemini-2.5-flash',
     fallbackModels: [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
       'gemini-1.5-flash',
       'gemini-1.5-pro',
     ],
@@ -24,6 +26,10 @@ const AI_CONFIG = {
     fallbackModels: [
       'llama-3.3-70b-versatile',
       'llama-3.1-8b-instant',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'qwen/qwen3.8-27b',
+      'groq/compound',
     ],
     xaiModels: [
       'grok-2-latest',

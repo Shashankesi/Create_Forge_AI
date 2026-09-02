@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -62,6 +62,12 @@ const PublicOnlyRoute = ({ children }) => {
   return children;
 };
 
+// Preserves location.state across redirected routes
+const RedirectWithState = ({ to }) => {
+  const location = useLocation();
+  return <Navigate to={to} state={location.state} replace />;
+};
+
 export const App = () => {
   return (
     <BrowserRouter>
@@ -108,9 +114,9 @@ export const App = () => {
 
                         {/* Creative Pipeline */}
                         <Route path="/brief" element={<CreativeBriefPage />} />
-                        <Route path="/tools/brief" element={<Navigate to="/brief" replace />} />
+                        <Route path="/tools/brief" element={<RedirectWithState to="/brief" />} />
                         <Route path="/research" element={<ResearchStudioPage />} />
-                        <Route path="/tools/research" element={<Navigate to="/research" replace />} />
+                        <Route path="/tools/research" element={<RedirectWithState to="/research" />} />
                         <Route path="/article" element={<ArticleGeneratorPage />} />
                         <Route path="/tools/article" element={<ArticleGeneratorPage />} />
                         <Route path="/titles" element={<TitleGeneratorPage />} />
@@ -118,22 +124,22 @@ export const App = () => {
                         <Route path="/image" element={<ImageGeneratorPage />} />
                         <Route path="/tools/image" element={<ImageGeneratorPage />} />
                         <Route path="/social-pack" element={<SocialPackPage />} />
-                        <Route path="/social" element={<Navigate to="/social-pack" replace />} />
-                        <Route path="/tools/social" element={<Navigate to="/social-pack" replace />} />
+                        <Route path="/social" element={<RedirectWithState to="/social-pack" />} />
+                        <Route path="/tools/social" element={<RedirectWithState to="/social-pack" />} />
                         <Route path="/seo-studio" element={<SeoStudioPage />} />
-                        <Route path="/seo" element={<Navigate to="/seo-studio" replace />} />
-                        <Route path="/tools/seo" element={<Navigate to="/seo-studio" replace />} />
+                        <Route path="/seo" element={<RedirectWithState to="/seo-studio" />} />
+                        <Route path="/tools/seo" element={<RedirectWithState to="/seo-studio" />} />
                         <Route path="/background-remover" element={<BackgroundRemoverPage />} />
                         <Route path="/tools/background-remove" element={<BackgroundRemoverPage />} />
-                        <Route path="/tools/background" element={<Navigate to="/background-remover" replace />} />
+                        <Route path="/tools/background" element={<RedirectWithState to="/background-remover" />} />
 
                         {/* Studio Workspaces & Intelligence */}
                         <Route path="/projects" element={<ProjectsPage />} />
                         <Route path="/canvas" element={<CreativeCanvasPage />} />
                         <Route path="/brand-kit" element={<BrandKitPage />} />
-                        <Route path="/brand" element={<Navigate to="/brand-kit" replace />} />
+                        <Route path="/brand" element={<RedirectWithState to="/brand-kit" />} />
                         <Route path="/quality-center" element={<QualityCenterPage />} />
-                        <Route path="/quality" element={<Navigate to="/quality-center" replace />} />
+                        <Route path="/quality" element={<RedirectWithState to="/quality-center" />} />
                         <Route path="/templates" element={<TemplatesPage />} />
                         <Route path="/export" element={<ExportCenterPage />} />
 
