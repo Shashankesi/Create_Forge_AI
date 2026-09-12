@@ -102,66 +102,66 @@ Produce native, platform-optimized copies. Respond strictly in valid JSON matchi
       console.warn('[SocialPackService] Fallback generated:', err.message);
     }
 
-    const cleanTitle = articleTitle || topic || 'Creative Production';
+    const cleanTitle = articleTitle || topic || 'Core Content';
 
     return {
       linkedin: {
         hooks: [
-          `Most people get ${cleanTitle} completely wrong. Here's what actually works in 2026:`,
-          `3 hard truths about ${cleanTitle} that took me years to realize:`,
-          `How we scaled our approach to ${cleanTitle} with zero wasted effort:`,
-          `Stop overcomplicating ${cleanTitle}. Use this simple framework instead:`,
-          `Why the top 1% of creators treat ${cleanTitle} differently:`,
+          `Most people overlook the real fundamentals of ${cleanTitle}. Here's what actually makes the difference:`,
+          `3 perspectives on ${cleanTitle} that shift how you think about it:`,
+          `Here's how a clearer approach to ${cleanTitle} changes real outcomes:`,
+          `Stop overcomplicating ${cleanTitle}. The core principles are simpler than you think:`,
+          `The most important question about ${cleanTitle} that rarely gets asked:`,
         ],
-        fullPost: `Most teams spend 80% of their time on repetitive creation and only 20% on creative direction.\n\nHere is how to flip the equation with ${cleanTitle}:\n\n1. Establish a single source of truth (Creative Brief).\n2. Automate cross-channel formatting.\n3. Keep visual and editorial voices strictly aligned.\n\nThe result? 10x faster execution without sacrificing depth.\n\nWhat is your team's biggest bottleneck right now? Drop a comment below.`,
+        fullPost: `${cleanTitle} is one of those topics where the gap between surface understanding and genuine insight is significant.\n\nMost conversations stay at the surface. Here's what actually matters:\n\n1. Start with first principles — not assumptions.\n2. Focus on what measurably changes outcomes.\n3. Build on evidence rather than convention.\n\nThe result? A clearer, more grounded approach that actually works in practice.\n\nWhat's your biggest question or challenge related to ${cleanTitle}? Drop it in the comments below.`,
       },
       twitter: {
         standalonePosts: [
-          `If you want to master ${cleanTitle}, focus on speed, structure, and consistency. Everything else is secondary.`,
-          `The secret to ${cleanTitle} is not working longer hours—it's building better automated pipelines.`,
-          `Never start creating without a structured brief. 5 minutes of planning saves 5 hours of revisions.`,
-          `Your audience doesn't care about your effort; they care about clarity and actionable value.`,
-          `Simplicity scales. Complexity breaks. Keep your content sharp.`,
+          `To really understand ${cleanTitle}, focus on the principles behind the patterns — not just the surface observations.`,
+          `The most overlooked aspect of ${cleanTitle}: the difference between activity and genuine progress.`,
+          `Start with what you know for certain about ${cleanTitle}, then build outward from there.`,
+          `Your instincts about ${cleanTitle} are worth testing. Most conventional wisdom hasn't been seriously challenged.`,
+          `Depth matters in ${cleanTitle}. Surface engagement rarely leads to meaningful understanding.`,
         ],
         thread: [
-          `1/5 How to master ${cleanTitle} in 2026 (without burning out): 🧵`,
-          `2/5 Step 1: Start with deep research. Understand search intent and audience pain points before writing a single word.`,
-          `3/5 Step 2: Build a pillar asset. A comprehensive guide provides the raw material for 10+ social pieces.`,
-          `4/5 Step 3: Repurpose intelligently. Tailor formats natively for LinkedIn, X, and Instagram.`,
-          `5/5 That's the playbook. If you found this valuable, repost the first tweet to share with your network! 🔁`,
+          `1/5 A clear-headed look at ${cleanTitle} — the thread: 🧵`,
+          `2/5 First: understand what the conversation is actually about. Most people talk past each other on ${cleanTitle} because they're starting from different assumptions.`,
+          `3/5 Second: identify the real stakes. Why does ${cleanTitle} matter? Who does it affect and how?`,
+          `4/5 Third: look at what actually works vs. what sounds good in theory. Evidence beats intuition.`,
+          `5/5 That's the framework. If this helped you think more clearly about ${cleanTitle}, share it with someone who needs it. 🔁`,
         ],
       },
       instagram: {
-        caption: `Ready to elevate your strategy on ${cleanTitle}? Here is the step-by-step breakdown you need to know today. 🚀\n\nSwipe through for the full framework ➡️\n\nSave this post so you don't lose it! 📌`,
+        caption: `Let's talk about ${cleanTitle} — because the conversation is more important than most people realize. 💡\n\nSwipe through for the breakdown ➡️\n\nSave this for when you need it. 📌`,
         carouselSlides: [
-          { slide: 1, heading: cleanTitle, body: 'The 2026 Execution Blueprint' },
-          { slide: 2, heading: 'The Big Problem', body: 'Why traditional workflows are too slow' },
-          { slide: 3, heading: 'The Solution', body: 'Unified creative pipelines' },
-          { slide: 4, heading: 'Key Takeaways', body: '3 principles to apply immediately' },
-          { slide: 5, heading: 'Next Steps', body: 'Follow @CreateForgeAI for more' },
+          { slide: 1, heading: cleanTitle, body: 'A clearer, more grounded perspective' },
+          { slide: 2, heading: 'The Real Question', body: `What does ${cleanTitle} actually mean in practice?` },
+          { slide: 3, heading: 'What Actually Matters', body: 'Focus on evidence, not assumptions' },
+          { slide: 4, heading: 'Key Takeaways', body: 'Principles you can apply immediately' },
+          { slide: 5, heading: 'Your Turn', body: 'How does this change how you think about it?' },
         ],
-        reelScript: `[Hook - 0:00] Stop struggling with ${cleanTitle}.\n[Body - 0:05] Here is the 3-step system top creators use to produce 10x more high-impact content.\n[CTA - 0:25] Check the link in bio for the complete template!`,
+        reelScript: `[Hook - 0:00] Here's what most people get wrong about ${cleanTitle}.\n[Body - 0:05] The real issue isn't what you think. Here are the 3 core things that actually drive outcomes.\n[CTA - 0:25] Check the link in bio for the full breakdown!`,
       },
       youtube: {
         titleOptions: [
-          `How to Master ${cleanTitle} (Step-by-Step Tutorial)`,
-          `${cleanTitle} Explained: The Complete 2026 Guide`,
-          `Why Everything You Know About ${cleanTitle} Is Changing`,
+          `${cleanTitle}: What You Need to Know`,
+          `A Deeper Look at ${cleanTitle} (Complete Breakdown)`,
+          `Rethinking ${cleanTitle}: Core Principles Explained`,
         ],
-        hook: `In the next 8 minutes, I'm going to show you the exact system we used to revolutionize our approach to ${cleanTitle}. Let's dive in.`,
-        description: `Everything you need to know about ${cleanTitle}.\n\nTimestamps:\n0:00 - Introduction\n1:20 - The Core Framework\n4:00 - Step-by-Step Blueprint\n7:00 - Final Takeaways`,
+        hook: `In the next few minutes, we're going to cut through the noise on ${cleanTitle} and focus on what actually matters. Let's get into it.`,
+        description: `A thorough breakdown of ${cleanTitle}.\n\nTimestamps:\n0:00 - Introduction\n1:20 - The Core Framework\n4:00 - What Actually Works\n7:00 - Key Takeaways and Next Steps`,
         chapters: [
           '0:00 - Introduction',
           '1:20 - The Core Framework',
-          '4:00 - Step-by-Step Blueprint',
-          '7:00 - Final Takeaways',
+          '4:00 - What Actually Works',
+          '7:00 - Key Takeaways and Next Steps',
         ],
       },
       ctaVariants: [
-        'Read the full comprehensive guide at CreateForge AI.',
-        'Save this post for your next project kickoff.',
-        'Share this with your team to streamline your workflow.',
-        'Subscribe for more high-signal creative studio insights.',
+        `Read the full breakdown on ${cleanTitle} at CreateForge AI.`,
+        'Save this for your next planning session.',
+        'Share this with someone thinking about the same questions.',
+        'Subscribe for more high-signal content on topics that matter.',
       ],
     };
   }

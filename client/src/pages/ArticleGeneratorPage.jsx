@@ -294,19 +294,28 @@ export const ArticleGeneratorPage = () => {
       });
 
       if (res.success && res.data) {
-        setResult(res.data);
-        setEditableContent(res.data.article || res.data.content);
-        showToast('Article generated and audited successfully!', 'success');
+        const articleContent = res.data.article || res.data.content;
+        // Validate the response has actual renderable content before showing success
+        if (!articleContent || articleContent.trim().length < 10) {
+          const errorMsg = 'Article generation returned empty content. Please try again.';
+          setError(errorMsg);
+          showToast(errorMsg, 'error');
+        } else {
+          setResult(res.data);
+          setEditableContent(articleContent);
+          // Only show success AFTER state is set and content is confirmed valid
+          showToast('Article generated and audited successfully!', 'success');
 
-        // Create version snapshot
-        const assetId = res.data._id || `art-${topic.substring(0, 20).replace(/\s+/g, '-')}`;
-        versionService.createVersion({
-          assetId,
-          projectId: activeProject?._id || activeProject?.id,
-          title: res.data.title || topic,
-          content: res.data.article || res.data.content,
-          changesSummary: 'Initial AI Generated Draft',
-        }).catch(() => {});
+          // Create version snapshot
+          const assetId = res.data._id || `art-${topic.substring(0, 20).replace(/\s+/g, '-')}`;
+          versionService.createVersion({
+            assetId,
+            projectId: activeProject?._id || activeProject?.id,
+            title: res.data.title || topic,
+            content: articleContent,
+            changesSummary: 'Initial AI Generated Draft',
+          }).catch(() => {});
+        }
       } else {
         const errorMsg = res?.error?.message || res?.message || 'Article generation could not be completed. Please check your inputs and try again.';
         setError(errorMsg);
@@ -1019,7 +1028,7 @@ export const ArticleGeneratorPage = () => {
                           key={action}
                           type="button"
                           disabled={transformLoading}
-                          onClick={() => handleTransformSelection(action)}
+                          onClick={() => handleApplyTransform(action)}
                           className="px-2 py-1 hover:bg-slate-800 rounded text-[11px] font-medium transition-colors"
                         >
                           {action}
@@ -1035,11 +1044,10 @@ export const ArticleGeneratorPage = () => {
                         ref={editorTextareaRef}
                         rows={24}
                         value={editableContent}
-                        onSelect={handleTextSelect}
+                        onSelect={handleTextareaSelect}
                         onChange={(e) => {
                           setEditableContent(e.target.value);
                           setIsDirty(true);
-                          debouncedAutosave(e.target.value);
                         }}
                         className="w-full max-w-[820px] mx-auto block p-4 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar resize-none"
                       />
@@ -1057,11 +1065,10 @@ export const ArticleGeneratorPage = () => {
                           ref={editorTextareaRef}
                           rows={24}
                           value={editableContent}
-                          onSelect={handleTextSelect}
+                          onSelect={handleTextareaSelect}
                           onChange={(e) => {
                             setEditableContent(e.target.value);
                             setIsDirty(true);
-                            debouncedAutosave(e.target.value);
                           }}
                           className="w-full p-4 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar resize-none"
                         />
@@ -1079,7 +1086,7 @@ export const ArticleGeneratorPage = () => {
                     <Button
                       size="xs"
                       variant="outline"
-                      onClick={handleHumanize}
+                      onClick={handleMakeMoreNatural}
                       loading={humanizing}
                       title="Refine transitions and natural cadence"
                     >

@@ -22,7 +22,8 @@ export class ErrorBoundary extends React.Component {
     if (this.props.onReset) {
       this.props.onReset();
     } else {
-      window.location.reload();
+      // Use href assignment to same path instead of reload() to avoid SPA 404 on Render static hosting
+      window.location.href = window.location.pathname;
     }
   };
 

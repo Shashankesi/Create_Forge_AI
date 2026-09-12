@@ -42,6 +42,7 @@ export const SocialPackPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [singleLoading, setSingleLoading] = useState(false);
+  const [error, setError] = useState('');
   const [selectedHookStyle, setSelectedHookStyle] = useState('Contrarian');
   const [packResult, setPackResult] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
@@ -76,10 +77,11 @@ export const SocialPackPage = () => {
     }
 
     setLoading(true);
+    setError('');
     try {
       const res = await aiService.generateSocialPack({
         topic: topic.trim() || 'Core Content',
-        articleText: isFromArticleMode ? articleText.trim() : undefined,
+        articleContent: isFromArticleMode ? articleText.trim() : undefined,
         targetAudience,
         tone,
         projectId: activeProject?._id || activeProject?.id,
@@ -89,9 +91,20 @@ export const SocialPackPage = () => {
         setPackResult(res.data);
         showToast('Complete Social Content Pack generated!', 'success');
         refreshProjects();
+      } else {
+        const errorMsg = res?.error?.message || res?.message || 'Social pack generation failed. Please try again.';
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
       }
     } catch (err) {
-      showToast('Could not generate social pack.', 'error');
+      const errorMsg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.customMessage ||
+        err?.message ||
+        'Could not generate social pack. Please try again.';
+      setError(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
     }
@@ -334,6 +347,14 @@ export const SocialPackPage = () => {
                   <Sparkles className="w-4 h-4 mr-1.5" />
                   {loading ? 'Synthesizing Platform Copies...' : 'Generate Social Pack'}
                 </Button>
+
+                {/* Error Display */}
+                {error && (
+                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
+                    <span className="shrink-0 mt-0.5">⚠</span>
+                    <span>{error}</span>
+                  </div>
+                )}
               </form>
             </GlassCard>
           </div>
