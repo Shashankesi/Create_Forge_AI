@@ -91,7 +91,7 @@ export const ArticleGeneratorPage = () => {
   const [topic, setTopic] = useState('');
   const [articleType, setArticleType] = useState('Comprehensive Guide');
   const [tone, setTone] = useState('Professional');
-  const [targetAudience, setTargetAudience] = useState('Software Developers');
+  const [targetAudience, setTargetAudience] = useState('General Readers');
   const [desiredLength, setDesiredLength] = useState('Medium');
   const [keywords, setKeywords] = useState('');
   const [researchMode, setResearchMode] = useState('AI Insights');
@@ -99,7 +99,7 @@ export const ArticleGeneratorPage = () => {
   const [showSourceInput, setShowSourceInput] = useState(false);
 
   // Brand Kit & Project Context
-  const [applyBrandKit, setApplyBrandKit] = useState(true);
+  const [applyBrandKit, setApplyBrandKit] = useState(false);
   const [userBrandKit, setUserBrandKit] = useState(null);
   const [showProjectContextDetails, setShowProjectContextDetails] = useState(false);
 
@@ -265,7 +265,7 @@ export const ArticleGeneratorPage = () => {
       });
 
       if (res.success && res.data) {
-        setOutline(res.data);
+        setOutline({ ...res.data, outlineTopic: topic.trim() });
         showToast('Article outline generated! Review or edit sections below.', 'success');
       } else {
         setError('Could not generate outline. You can draft directly.');
@@ -290,6 +290,11 @@ export const ArticleGeneratorPage = () => {
     setCopied(false);
 
     try {
+      const activeOutlineSections =
+        outline && outline.outlineTopic && outline.outlineTopic.toLowerCase() === topic.trim().toLowerCase()
+          ? outline.sections
+          : undefined;
+
       const res = await aiService.generateArticle({
         topic: topic.trim(),
         articleType,
@@ -297,7 +302,7 @@ export const ArticleGeneratorPage = () => {
         targetAudience: applyBrandKit && userBrandKit?.targetAudience ? userBrandKit.targetAudience : targetAudience,
         desiredLength,
         keywords: keywords.trim(),
-        outline: outline?.sections || undefined,
+        outline: activeOutlineSections,
         researchMode,
         sourceContext: sourceMaterial.trim(),
         advancedOptions: {
@@ -789,8 +794,14 @@ export const ArticleGeneratorPage = () => {
                     <textarea
                       rows={3}
                       value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="e.g. Write an actionable guide on system design architecture for high scale web applications with concrete microservice patterns..."
+                      onChange={(e) => {
+                        const newTopic = e.target.value;
+                        setTopic(newTopic);
+                        if (outline && outline.outlineTopic && outline.outlineTopic.toLowerCase() !== newTopic.trim().toLowerCase()) {
+                          setOutline(null);
+                        }
+                      }}
+                      placeholder="e.g. 10 Healthy breakfast ideas for busy mornings, or React hooks for beginners..."
                       className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none min-h-[100px]"
                     />
                   </div>
@@ -824,12 +835,13 @@ export const ArticleGeneratorPage = () => {
                         onChange={(e) => setTargetAudience(e.target.value)}
                         className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 h-10"
                       >
-                        <option value="Software Developers">Software Developers & Engineers</option>
-                        <option value="Technology Leaders">CTOs & Tech Leaders</option>
-                        <option value="Product Managers">Product Managers</option>
-                        <option value="Founders">Founders & Executives</option>
+                        <option value="General Readers">General Readers</option>
                         <option value="Beginners & Students">Beginners & Students</option>
-                        <option value="General">General Industry Audience</option>
+                        <option value="Professionals & Practitioners">Professionals & Practitioners</option>
+                        <option value="Software Developers & Engineers">Software Developers & Engineers</option>
+                        <option value="Technology Leaders & CTOs">Technology Leaders & CTOs</option>
+                        <option value="Product Managers & Designers">Product Managers & Designers</option>
+                        <option value="Founders & Entrepreneurs">Founders & Entrepreneurs</option>
                       </select>
                     </div>
 

@@ -66,8 +66,8 @@ class GeminiService {
         }
       } catch (err) {
         console.warn(`[AI ERROR] provider=gemini model=${modelName} error="${err.message}"`);
-        if (err.message && (err.message.includes('API key not valid') || err.message.includes('API_KEY_INVALID') || err.message.includes('400') || err.message.includes('404'))) {
-          break; // Key is invalid or model not found; don't waste time trying subsequent models
+        if (err.message && (err.message.includes('API key not valid') || err.message.includes('API_KEY_INVALID'))) {
+          break; // Key is invalid; don't waste time trying subsequent models
         }
       }
     }
@@ -112,8 +112,8 @@ class GeminiService {
         return parsed;
       } catch (err) {
         console.warn(`[AI ERROR] provider=gemini model=${modelName} json-error="${err.message}"`);
-        if (err.message && (err.message.includes('API key not valid') || err.message.includes('API_KEY_INVALID') || err.message.includes('400') || err.message.includes('404'))) {
-          break; // Key is invalid or model not found; don't waste time trying subsequent models
+        if (err.message && (err.message.includes('API key not valid') || err.message.includes('API_KEY_INVALID'))) {
+          break; // Key is invalid; don't waste time trying subsequent models
         }
       }
     }
