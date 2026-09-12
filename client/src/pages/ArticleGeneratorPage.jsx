@@ -45,6 +45,7 @@ import {
   ArrowDown,
   Plus,
   CheckCheck,
+  Columns,
 } from 'lucide-react';
 import { ToolLayout } from '../components/common/ToolLayout';
 import { Button } from '../components/common/Button';
@@ -68,6 +69,16 @@ const LOADING_STAGES = [
   '06 Auditing quality & verifying SEO health...',
   '07 Preparing your publication-ready draft...',
 ];
+
+const cleanArticleContent = (text) => {
+  if (!text || typeof text !== 'string') return '';
+  let cleaned = text.trim();
+  // Strip accidental outer code fence wrapping the entire article
+  if (/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```$/i, '$1').trim();
+  }
+  return cleaned;
+};
 
 export const ArticleGeneratorPage = () => {
   const { t } = useLanguage();
@@ -103,7 +114,7 @@ export const ArticleGeneratorPage = () => {
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [editableContent, setEditableContent] = useState('');
-  const [viewMode, setViewMode] = useState('split'); // 'edit' | 'preview' | 'split'
+  const [viewMode, setViewMode] = useState('preview'); // 'preview' (Document View) | 'edit' (Markdown Editor) | 'split' (Split View)
   const [copied, setCopied] = useState(false);
 
   // Autosave & Recovery States
@@ -157,8 +168,9 @@ export const ArticleGeneratorPage = () => {
       const initTopic = location.state.initialTopic || location.state.topic;
       setTopic(initTopic);
       if (location.state.initialContent) {
-        setEditableContent(location.state.initialContent);
-        setResult({ content: location.state.initialContent, title: initTopic });
+        const cleaned = cleanArticleContent(location.state.initialContent);
+        setEditableContent(cleaned);
+        setResult({ content: cleaned, title: initTopic });
       }
       showToast(`Loaded "${initTopic}" into Article Studio.`, 'info');
     }
@@ -294,15 +306,17 @@ export const ArticleGeneratorPage = () => {
       });
 
       if (res.success && res.data) {
-        const articleContent = res.data.article || res.data.content;
+        const rawContent = res.data.article || res.data.content;
+        const articleContent = cleanArticleContent(rawContent);
         // Validate the response has actual renderable content before showing success
         if (!articleContent || articleContent.trim().length < 10) {
           const errorMsg = 'Article generation returned empty content. Please try again.';
           setError(errorMsg);
           showToast(errorMsg, 'error');
         } else {
-          setResult(res.data);
+          setResult({ ...res.data, article: articleContent, content: articleContent });
           setEditableContent(articleContent);
+          setViewMode('preview');
           // Only show success AFTER state is set and content is confirmed valid
           showToast('Article generated and audited successfully!', 'success');
 
@@ -446,7 +460,7 @@ export const ArticleGeneratorPage = () => {
         targetAudience,
       });
       if (res.success && res.data?.humanizedContent) {
-        setEditableContent(res.data.humanizedContent);
+        setEditableContent(cleanArticleContent(res.data.humanizedContent));
         showToast('Article polished for natural rhythm and flow!', 'success');
       }
     } catch (err) {
@@ -496,7 +510,7 @@ export const ArticleGeneratorPage = () => {
 
   // Cross-Studio Pipeline Shortcuts
   const handleNavigateToTitles = () => {
-    navigate('/title-generator', {
+    navigate('/titles', {
       state: {
         initialTopic: topic || result?.title,
         articleText: editableContent || result?.article,
@@ -963,161 +977,351 @@ export const ArticleGeneratorPage = () => {
         {/* 2. POST-GENERATION ARTICLE STUDIO (Rich Editor + Quality + Next Steps)   */}
         {/* ========================================================================= */}
         {isGenerated && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start animate-in fade-in duration-200">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-200">
             {/* LEFT / CENTER (8 COLS): ARTICLE EDITOR WORKSPACE */}
-            <div className="lg:col-span-8 space-y-4">
-              <GlassCard className="p-5 space-y-4 min-h-[640px] flex flex-col justify-between shadow-sm">
-                <div>
-                  {/* Editor Header Toolbar */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
-                        Article Editor
-                      </span>
-                    </div>
-
-                    {/* View Mode Switcher */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
-                      <button
-                        type="button"
-                        onClick={() => setViewMode('edit')}
-                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
-                          viewMode === 'edit'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                            : 'text-slate-600 dark:text-slate-400'
-                        }`}
-                      >
-                        Editor
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setViewMode('split')}
-                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
-                          viewMode === 'split'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                            : 'text-slate-600 dark:text-slate-400'
-                        }`}
-                      >
-                        Split
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setViewMode('preview')}
-                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
-                          viewMode === 'preview'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                            : 'text-slate-600 dark:text-slate-400'
-                        }`}
-                      >
-                        Preview
-                      </button>
-                    </div>
+            <div className="lg:col-span-8 space-y-4 min-w-0">
+              {/* Main Document Workspace Card */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                {/* Editor Header Toolbar */}
+                <div className="p-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
+                  {/* View Mode Switcher */}
+                  <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('preview')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        viewMode === 'preview'
+                          ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Document View</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('edit')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        viewMode === 'edit'
+                          ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Markdown Editor</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('split')}
+                      className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        viewMode === 'split'
+                          ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <Columns className="w-3.5 h-3.5" />
+                      <span>Split View</span>
+                    </button>
                   </div>
 
-                  {/* Text Selection Floating Improvement Bar */}
-                  {floatingToolbarPos && selectedText && (
-                    <div
-                      className="absolute z-30 flex items-center gap-1 bg-slate-900 text-white p-1.5 rounded-xl shadow-xl border border-slate-700 animate-in fade-in duration-150"
-                      style={{ top: `${floatingToolbarPos.top}px`, left: `${floatingToolbarPos.left}px` }}
+                  {/* Metadata Chips & Quick Shortcuts */}
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-medium">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      ~{readingTime} min read
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-medium">
+                      {wordCount.toLocaleString()} words
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      title="Copy article markdown"
+                      className="p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
-                      <span className="text-[10px] font-bold px-2 py-0.5 text-indigo-300 border-r border-slate-700">
-                        AI Rewrite
+                      {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      title="Download Markdown file"
+                      className="p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Inline AI Selection Toolbar (Active when user highlights text in Editor) */}
+                {selectedText && (
+                  <div className="mx-4 mt-4 p-2.5 sm:px-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-xl shadow-lg border border-indigo-500/30 flex flex-wrap items-center justify-between gap-2 animate-in fade-in duration-150">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
+                      <span className="text-xs font-bold text-indigo-200">
+                        Selected: <span className="text-slate-300 font-normal italic truncate max-w-[160px] inline-block align-bottom">"{selectedText}"</span>
                       </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {['Improve', 'Shorten', 'Expand', 'Simplify', 'Add Example', 'Fix Grammar'].map((action) => (
                         <button
                           key={action}
                           type="button"
                           disabled={transformLoading}
                           onClick={() => handleApplyTransform(action)}
-                          className="px-2 py-1 hover:bg-slate-800 rounded text-[11px] font-medium transition-colors"
+                          className="px-2.5 py-1 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-lg text-xs font-medium text-white transition-all hover:scale-105"
                         >
                           {action}
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedText('');
+                          setSelectionRange(null);
+                        }}
+                        className="text-xs text-slate-400 hover:text-white px-1.5 py-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Workspace Content Canvas */}
+                <div className="p-4 sm:p-6 lg:p-8">
+                  {/* VIEW 1: DOCUMENT VIEW (Formatted Reading / Review Canvas) */}
+                  {viewMode === 'preview' && (
+                    <div className="w-full max-w-4xl mx-auto space-y-6">
+                      {/* Document Meta Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/60 dark:border-indigo-800/60">
+                            {articleType}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+                            Tone: {tone}
+                          </span>
+                          {targetAudience && (
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hidden sm:inline-block">
+                              Audience: {targetAudience}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode('edit')}
+                          className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          Edit Article
+                        </button>
+                      </div>
+
+                      {/* Prominent Title if not already starting with H1 */}
+                      {!editableContent.trim().startsWith('# ') && (
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight font-['Outfit'] pb-3 border-b border-slate-100 dark:border-slate-800">
+                          {result?.title || topic || 'Generated Article'}
+                        </h1>
+                      )}
+
+                      {/* Rendered Markdown Body with Full Responsive Styling */}
+                      <div className="prose prose-slate dark:prose-invert prose-base sm:prose-lg max-w-none break-words leading-relaxed">
+                        <ReactMarkdown
+                          components={{
+                            h1: ({ node, ...props }) => (
+                              <h1
+                                className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mt-1 mb-6 font-['Outfit'] pb-4 border-b border-slate-200/80 dark:border-slate-800"
+                                {...props}
+                              />
+                            ),
+                            h2: ({ node, ...props }) => (
+                              <h2
+                                className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight mt-8 mb-4 pt-4 border-t border-slate-100 dark:border-slate-800/80 font-['Outfit']"
+                                {...props}
+                              />
+                            ),
+                            h3: ({ node, ...props }) => (
+                              <h3
+                                className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100 mt-6 mb-3"
+                                {...props}
+                              />
+                            ),
+                            p: ({ node, ...props }) => (
+                              <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base my-3.5" {...props} />
+                            ),
+                            ul: ({ node, ...props }) => (
+                              <ul className="list-disc pl-6 space-y-2 text-slate-700 dark:text-slate-300 text-sm sm:text-base my-4" {...props} />
+                            ),
+                            ol: ({ node, ...props }) => (
+                              <ol className="list-decimal pl-6 space-y-2 text-slate-700 dark:text-slate-300 text-sm sm:text-base my-4" {...props} />
+                            ),
+                            blockquote: ({ node, ...props }) => (
+                              <blockquote
+                                className="border-l-4 border-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/20 py-3 px-5 rounded-r-xl my-5 text-slate-700 dark:text-slate-300 italic not-italic-children shadow-xs"
+                                {...props}
+                              />
+                            ),
+                            pre: ({ node, ...props }) => (
+                              <div className="relative group my-5">
+                                <pre
+                                  className="bg-slate-950 border border-slate-800/90 rounded-xl p-4 overflow-x-auto text-xs sm:text-sm text-slate-100 font-mono shadow-inner custom-scrollbar"
+                                  {...props}
+                                />
+                              </div>
+                            ),
+                            code: ({ node, inline, className, children, ...props }) => {
+                              if (inline) {
+                                return (
+                                  <code
+                                    className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800/80 text-indigo-600 dark:text-indigo-400 font-mono text-xs sm:text-[13px] font-medium border border-slate-200/60 dark:border-slate-700/60"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                );
+                              }
+                              return (
+                                <code className={`${className || ''} font-mono`} {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            table: ({ node, ...props }) => (
+                              <div className="overflow-x-auto my-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <table className="w-full text-left border-collapse text-xs sm:text-sm" {...props} />
+                              </div>
+                            ),
+                            th: ({ node, ...props }) => (
+                              <th className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 font-bold text-slate-900 dark:text-white" {...props} />
+                            ),
+                            td: ({ node, ...props }) => (
+                              <td className="border-b border-slate-100 dark:border-slate-800/50 p-3 text-slate-700 dark:text-slate-300" {...props} />
+                            ),
+                          }}
+                        >
+                          {editableContent}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   )}
 
-                  {/* Main Editor Surface (Max Reading Width: 780-820px) */}
-                  <div className="pt-2">
-                    {viewMode === 'edit' && (
+                  {/* VIEW 2: MARKDOWN EDITOR (Clean Document-First Writing Surface) */}
+                  {viewMode === 'edit' && (
+                    <div className="w-full max-w-4xl mx-auto space-y-3">
+                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pb-1">
+                        <span>Markdown Document Canvas (Select text to trigger AI Rewrite)</span>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode('preview')}
+                          className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          View Rendered Article
+                        </button>
+                      </div>
                       <textarea
                         ref={editorTextareaRef}
-                        rows={24}
+                        rows={28}
                         value={editableContent}
                         onSelect={handleTextareaSelect}
                         onChange={(e) => {
                           setEditableContent(e.target.value);
                           setIsDirty(true);
                         }}
-                        className="w-full max-w-[820px] mx-auto block p-4 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar resize-none"
+                        placeholder="Write or edit article markdown here..."
+                        className="w-full p-5 sm:p-7 rounded-xl bg-slate-50/70 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 font-sans text-sm sm:text-base leading-relaxed text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 custom-scrollbar resize-y min-h-[580px]"
                       />
-                    )}
+                    </div>
+                  )}
 
-                    {viewMode === 'preview' && (
-                      <div className="w-full max-w-[820px] mx-auto p-6 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 prose prose-slate dark:prose-invert max-w-none text-xs leading-relaxed overflow-y-auto max-h-[600px] custom-scrollbar">
-                        <ReactMarkdown>{editableContent}</ReactMarkdown>
-                      </div>
-                    )}
-
-                    {viewMode === 'split' && (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[600px]">
+                  {/* VIEW 3: SPLIT VIEW (Editor + Live Formatted Preview Side-by-Side) */}
+                  {viewMode === 'split' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 min-h-[620px]">
+                      {/* Left: Editor Pane */}
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider px-1">
+                          <span>Markdown Editor</span>
+                        </div>
                         <textarea
                           ref={editorTextareaRef}
-                          rows={24}
                           value={editableContent}
                           onSelect={handleTextareaSelect}
                           onChange={(e) => {
                             setEditableContent(e.target.value);
                             setIsDirty(true);
                           }}
-                          className="w-full p-4 rounded-xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar resize-none"
+                          className="w-full h-[640px] p-4 sm:p-5 rounded-xl bg-slate-50/70 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 font-sans text-xs sm:text-sm leading-relaxed text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 custom-scrollbar resize-none overflow-y-auto"
                         />
-                        <div className="p-4 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 prose prose-slate dark:prose-invert max-w-none text-xs leading-relaxed overflow-y-auto custom-scrollbar">
+                      </div>
+
+                      {/* Right: Rendered Preview Pane */}
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider px-1">
+                          <span>Live Formatted Preview</span>
+                        </div>
+                        <div className="w-full h-[640px] p-5 sm:p-6 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 prose prose-slate dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed overflow-y-auto custom-scrollbar break-words">
                           <ReactMarkdown>{editableContent}</ReactMarkdown>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Dedicated Non-Overlapping Footer Action Toolbar */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleMakeMoreNatural}
+                    loading={humanizing}
+                    title="Refine transitions and natural conversational cadence"
+                    className="border-purple-200 dark:border-purple-900/50 hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/30"
+                  >
+                    <Sparkles className="w-4 h-4 mr-1.5 text-purple-500" />
+                    Humanize Tone
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setOutline(null);
+                      setResult(null);
+                      setEditableContent('');
+                    }}
+                    title="Start fresh with a new article topic"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5 text-slate-500" />
+                    Write New Article
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleCopy} title="Copy article to clipboard">
+                    {copied ? <Check className="w-4 h-4 mr-1.5 text-emerald-500" /> : <Copy className="w-4 h-4 mr-1.5 text-slate-500" />}
+                    {copied ? 'Copied' : 'Copy Article'}
+                  </Button>
                 </div>
 
-                {/* Footer Toolbar */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      onClick={handleMakeMoreNatural}
-                      loading={humanizing}
-                      title="Refine transitions and natural cadence"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 mr-1 text-purple-500" />
-                      Humanize Tone
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      onClick={() => {
-                        setOutline(null);
-                        setResult(null);
-                        setEditableContent('');
-                      }}
-                    >
-                      + Write New Article
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button size="xs" variant="primary" onClick={handleSaveToProject} loading={savingToProject}>
-                      <Save className="w-3.5 h-3.5 mr-1" />
-                      Save to Project
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-slate-500 hidden sm:inline-flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${saveStatus === 'Saved' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                    <span>{saveStatus}</span>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={handleSaveToProject}
+                    loading={savingToProject}
+                    className="shadow-sm shadow-indigo-500/20"
+                  >
+                    <Save className="w-4 h-4 mr-1.5" />
+                    Save to Project
+                  </Button>
                 </div>
-              </GlassCard>
+              </div>
             </div>
 
             {/* RIGHT COLUMN (4 COLS): QUALITY BREAKDOWN & NEXT STEPS */}
-            <div className="lg:col-span-4 space-y-4">
+            <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-4">
               {/* Quality Score Card */}
               {result?.qualityScores && (
                 <GlassCard className="p-5 space-y-4 text-xs shadow-sm">
