@@ -68,6 +68,13 @@ const RedirectWithState = ({ to }) => {
   return <Navigate to={to} state={location.state} replace />;
 };
 
+// Resilient fallback for /index.html
+const IndexHtmlFallback = () => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <PageLoader message="Loading workspace..." />;
+  return <Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />;
+};
+
 export const App = () => {
   return (
     <BrowserRouter>
@@ -83,6 +90,7 @@ export const App = () => {
                       {/* Public Marketing & Auth Routes */}
                       <Route element={<MainLayout />}>
                         <Route path="/" element={<LandingPage />} />
+                        <Route path="/index.html" element={<IndexHtmlFallback />} />
                         <Route
                           path="/login"
                           element={
@@ -111,6 +119,7 @@ export const App = () => {
                         }
                       >
                         <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/workspace" element={<RedirectWithState to="/dashboard" />} />
 
                         {/* Creative Pipeline */}
                         <Route path="/brief" element={<CreativeBriefPage />} />
@@ -121,8 +130,10 @@ export const App = () => {
                         <Route path="/tools/article" element={<ArticleGeneratorPage />} />
                         <Route path="/titles" element={<TitleGeneratorPage />} />
                         <Route path="/tools/titles" element={<TitleGeneratorPage />} />
+                        <Route path="/blog-titles" element={<RedirectWithState to="/titles" />} />
                         <Route path="/image" element={<ImageGeneratorPage />} />
                         <Route path="/tools/image" element={<ImageGeneratorPage />} />
+                        <Route path="/image-generator" element={<RedirectWithState to="/image" />} />
                         <Route path="/social-pack" element={<SocialPackPage />} />
                         <Route path="/social" element={<RedirectWithState to="/social-pack" />} />
                         <Route path="/tools/social" element={<RedirectWithState to="/social-pack" />} />
@@ -132,6 +143,7 @@ export const App = () => {
                         <Route path="/background-remover" element={<BackgroundRemoverPage />} />
                         <Route path="/tools/background-remove" element={<BackgroundRemoverPage />} />
                         <Route path="/tools/background" element={<RedirectWithState to="/background-remover" />} />
+                        <Route path="/background-removal" element={<RedirectWithState to="/background-remover" />} />
 
                         {/* Studio Workspaces & Intelligence */}
                         <Route path="/projects" element={<ProjectsPage />} />

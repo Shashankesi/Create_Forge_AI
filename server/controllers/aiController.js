@@ -854,7 +854,7 @@ const generateSocialPack = async (req, res, next) => {
     if (userId) {
       await recordHistory({
         userId,
-        tool: 'content-pack',
+        tool: 'social',
         prompt: { topic: topic || articleTitle, format: 'social-pack' },
         result,
         metadata: { projectId },

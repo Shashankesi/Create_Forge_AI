@@ -130,7 +130,10 @@ Identify robotic AI clichés (e.g. "delve into", "testament to", "tapestry", "in
       });
 
       if (result?.data) {
-        return result.data;
+        return {
+          ...result.data,
+          originalityScore: result.data.originalityScore || result.data.humanizationScore || 85,
+        };
       }
     } catch (err) {
       console.warn('[SmartOptimizationService] Naturalness check fallback:', err.message);
@@ -138,6 +141,7 @@ Identify robotic AI clichés (e.g. "delve into", "testament to", "tapestry", "in
 
     return {
       humanizationScore: 86,
+      originalityScore: 86,
       cadenceAndRhythmScore: 84,
       clicheCount: 1,
       detectedCliches: ['in today\'s fast-paced world'],

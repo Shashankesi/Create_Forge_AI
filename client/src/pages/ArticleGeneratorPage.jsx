@@ -507,7 +507,7 @@ export const ArticleGeneratorPage = () => {
 
   const handleNavigateToImage = () => {
     const promptSeed = `A cinematic editorial hero visual for an article titled "${result?.title || topic}", high resolution, 16:9 magazine composition, professional lighting`;
-    navigate('/image-generator', {
+    navigate('/image', {
       state: {
         initialTopic: topic || result?.title,
         initialPrompt: promptSeed,

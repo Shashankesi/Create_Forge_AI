@@ -7,11 +7,11 @@
 
 const AI_CONFIG = {
   gemini: {
-    primaryModel: 'gemini-2.5-flash',
+    primaryModel: 'gemini-2.0-flash',
     fallbackModels: [
-      'gemini-2.5-flash',
       'gemini-2.0-flash',
       'gemini-1.5-flash',
+      'gemini-2.5-flash',
       'gemini-1.5-pro',
     ],
     defaultTimeoutMs: 15000,

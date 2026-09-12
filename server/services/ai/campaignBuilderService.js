@@ -600,6 +600,104 @@ Generate an 8-phase JSON campaign plan.`;
 
     return plan;
   }
+
+  /**
+   * 10-Point Launch Readiness Audit based on real MongoDB state
+   */
+  async getLaunchReadiness(projectId, userId) {
+    const project = await Project.findOne({ _id: projectId, userId });
+    if (!project) return null;
+
+    const [brief, researchCount, articlesCount, imagesCount, brandKit] = await Promise.all([
+      Brief.findOne({ projectId, userId }).catch(() => null),
+      ResearchItem.countDocuments({ projectId, userId }).catch(() => 0),
+      GenerationHistory.countDocuments({ projectId, userId, tool: 'article' }).catch(() => 0),
+      ImageGeneration.countDocuments({ projectId, userId }).catch(() => 0),
+      BrandKit.findOne({ userId }).catch(() => null),
+    ]);
+
+    const checks = [
+      {
+        id: 'brief',
+        label: 'Creative Brief & Strategic Objectives',
+        passed: Boolean(brief),
+        route: '/brief',
+      },
+      {
+        id: 'research',
+        label: 'Market & Audience Search Intent Research',
+        passed: researchCount > 0,
+        route: '/research',
+      },
+      {
+        id: 'article',
+        label: 'Long-Form Pillar Article Draft',
+        passed: articlesCount > 0,
+        route: '/article',
+      },
+      {
+        id: 'titles',
+        label: 'High-Converting Headline Variants & CTR Scoring',
+        passed: Boolean(project.stageProgress?.content || articlesCount > 0),
+        route: '/titles',
+      },
+      {
+        id: 'visuals',
+        label: 'FLUX Cinematic Visuals & Hero Imagery',
+        passed: imagesCount > 0,
+        route: '/image',
+      },
+      {
+        id: 'social',
+        label: 'Multi-Channel Social Content Pack (LinkedIn, X, IG, YT)',
+        passed: Boolean(project.stageProgress?.social),
+        route: '/social-pack',
+      },
+      {
+        id: 'seo',
+        label: 'SEO Studio Strategy & Metadata Coverage',
+        passed: Boolean(project.stageProgress?.seo),
+        route: '/seo-studio',
+      },
+      {
+        id: 'brand',
+        label: 'Active Brand Kit & Tone Alignment',
+        passed: Boolean(brandKit),
+        route: '/brand-kit',
+      },
+      {
+        id: 'quality',
+        label: 'Quality Center Audit & Readability Review',
+        passed: Boolean(project.campaignHealthScore?.overall >= 70),
+        route: '/quality-center',
+      },
+      {
+        id: 'export',
+        label: 'Omnichannel Asset Export Readiness',
+        passed: Boolean(project.stageProgress?.review || (articlesCount > 0 && imagesCount > 0)),
+        route: '/export',
+      },
+    ];
+
+    const passedCount = checks.filter((c) => c.passed).length;
+    const totalChecks = 10;
+    const readinessPercentage = Math.round((passedCount / totalChecks) * 100);
+
+    let statusLabel = 'In Initial Planning';
+    if (readinessPercentage >= 90) statusLabel = 'Ready for Global Launch';
+    else if (readinessPercentage >= 60) statusLabel = 'Nearing Production Launch';
+    else if (readinessPercentage >= 30) statusLabel = 'Active Synthesis in Progress';
+
+    return {
+      projectId,
+      projectTitle: project.name,
+      passedCount,
+      totalChecks,
+      readinessPercentage,
+      statusLabel,
+      checks,
+    };
+  }
 }
 
 module.exports = new CampaignBuilderService();
